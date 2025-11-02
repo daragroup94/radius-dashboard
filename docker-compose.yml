@@ -5,15 +5,15 @@ services:
     container_name: radius-dashboard
     restart: unless-stopped
     ports:
-      - "5000:5000"  # TAMBAHKAN INI
+      - "5000:5000"  # TAMBAHKAN INI/JIKA PAKAI TRAEFIK HAPUS PORT
 #    labels:
 #      - "traefik.enable=true"
 #      - "traefik.http.routers.radius.entrypoints=web"
-#      - "traefik.http.routers.radius.rule=Host(`radius.access.daranett.com`)"
+#      - "traefik.http.routers.radius.rule=Host(`your.domain`)"
 #      - "traefik.http.routers.radius.middlewares=https-redirect"
 #      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
 #      - "traefik.http.routers.radius-secure.entrypoints=websecure"
-#      - "traefik.http.routers.radius-secure.rule=Host(`radius.access.daranett.com`)"
+#      - "traefik.http.routers.radius-secure.rule=Host(`your.domain`)"
 #      - "traefik.http.routers.radius-secure.tls=true"
 #      - "traefik.http.routers.radius-secure.service=radius"
 #      - "traefik.http.services.radius.loadbalancer.server.port=5000"
