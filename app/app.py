@@ -747,16 +747,33 @@ def api_update_billing_package(package_id):
         data = get_request_data()
         print(f"DEBUG: Updating package {package_id} with data: {data}")
         
-        execute_query("""
-            UPDATE billing_packages 
-            SET name = %s, description = %s, price_monthly = %s, price_daily = %s, 
-                bandwidth_limit = %s, session_timeout = %s, idle_timeout = %s, is_active = %s
-            WHERE id = %s AND deleted_at IS NULL
-        """, (
-            data['name'], data.get('description', ''), data['price_monthly'], data['price_daily'],
-            data.get('bandwidth_limit', ''), data.get('session_timeout', 3600), 
-            data.get('idle_timeout', 300), data.get('is_active', True), package_id
-        ), fetch=False)
+        # Check if this is a partial update (e.g., only status toggle)
+        if 'name' not in data:
+            # Partial update - only update provided fields
+            update_fields = []
+            update_values = []
+            
+            if 'is_active' in data:
+                update_fields.append("is_active = %s")
+                update_values.append(data['is_active'])
+            
+            if update_fields:
+                query = f"UPDATE billing_packages SET {', '.join(update_fields)} WHERE id = %s AND deleted_at IS NULL"
+                update_values.append(package_id)
+                execute_query(query, tuple(update_values), fetch=False)
+        else:
+            # Full update - update all fields
+            execute_query("""
+                UPDATE billing_packages 
+                SET name = %s, description = %s, price_monthly = %s, price_daily = %s, 
+                    bandwidth_limit = %s, session_timeout = %s, idle_timeout = %s, is_active = %s
+                WHERE id = %s AND deleted_at IS NULL
+            """, (
+                data['name'], data.get('description', ''), data['price_monthly'], data['price_daily'],
+                data.get('bandwidth_limit', ''), data.get('session_timeout', 3600), 
+                data.get('idle_timeout', 300), data.get('is_active', True), package_id
+            ), fetch=False)
+        
         return jsonify({'success': True, 'message': 'Package updated successfully'})
     except Exception as e:
         print(f"DEBUG: Error updating package: {str(e)}")
