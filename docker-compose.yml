@@ -1,23 +1,36 @@
+# ============================================
+# FREERADIUS PROJECT - DOCKER COMPOSE
+# Complete FreeRADIUS with Dashboard & PostgreSQL
+# ============================================
+
 services:
+  # ==========================================
+  # RADIUS DASHBOARD (Flask Application)
+  # ==========================================
   radius-dashboard:
     build: .
     container_name: radius-dashboard
     restart: unless-stopped
-    ports:
-      - "5000:5000"  # TAMBAHKAN INI/JIKA PAKAI TRAEFIK HAPUS PORT
-#    labels:
-#      - "traefik.enable=true"
-#      - "traefik.http.routers.radius.entrypoints=web"
-#      - "traefik.http.routers.radius.rule=Host(`your.domain`)"
-#      - "traefik.http.routers.radius.middlewares=https-redirect"
-#      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
-#      - "traefik.http.routers.radius-secure.entrypoints=websecure"
-#      - "traefik.http.routers.radius-secure.rule=Host(`your.domain`)"
-#      - "traefik.http.routers.radius-secure.tls=true"
-#      - "traefik.http.routers.radius-secure.service=radius"
-#      - "traefik.http.services.radius.loadbalancer.server.port=5000"
+    # Traefik Labels
+    labels:
+      - "traefik.enable=true"
+      # HTTP (Redirect to HTTPS)
+      - "traefik.http.routers.radius.entrypoints=web"
+      - "traefik.http.routers.radius.rule=Host(`radius.access.daranett.com`)"
+      - "traefik.http.routers.radius.middlewares=radius-https-redirect"
+      - "traefik.http.middlewares.radius-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.radius-https-redirect.redirectscheme.permanent=true"
+      # HTTPS (Secure)
+      - "traefik.http.routers.radius-secure.entrypoints=websecure"
+      - "traefik.http.routers.radius-secure.rule=Host(`radius.access.daranett.com`)"
+      - "traefik.http.routers.radius-secure.tls=true"
+      - "traefik.http.routers.radius-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.radius-secure.service=radius-service"
+      # Service Configuration
+      - "traefik.http.services.radius-service.loadbalancer.server.port=5000"
+    # Environment Variables
     environment:
-      - DB_HOST=freeradius-db
+      - DB_HOST=postgres
       - DB_NAME=radius
       - DB_USER=radius
       - DB_PASSWORD=radiuspass
@@ -25,50 +38,102 @@ services:
       - SECRET_KEY=05052020fAk@#
       - REDIS_URL=redis://redis:6379/0
       - FLASK_ENV=production
+      - TZ=Asia/Jakarta
+    # Volumes
     volumes:
       - ./app:/app
       - ./uploads:/app/static/uploads
       - ./logs:/app/logs
+      - ./backups:/app/backups
+    # Network
     networks:
-      - radius-net
+      my-net:
+        ipv4_address: 172.100.10.126
+    # Dependencies
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
+  # ==========================================
+  # POSTGRESQL DATABASE
+  # ==========================================
   postgres:
     image: postgres:15-alpine
     container_name: freeradius-db
     restart: unless-stopped
+    
+    # Environment Variables
     environment:
       POSTGRES_DB: radius
       POSTGRES_USER: radius
       POSTGRES_PASSWORD: radiuspass
-      TZ: Asia/Jakarta
       POSTGRES_INITDB_ARGS: "-E UTF8"
-    volumes:
-      - ./data:/var/lib/postgresql/data
-      - ./init.db:/docker-entrypoint-initdb.d
+      TZ: Asia/Jakarta
+    
+    # Ports (Optional - comment if not needed)
     ports:
       - "5432:5432"
+    
+    # Volumes
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.db:/docker-entrypoint-initdb.d
+    
+    # Network
     networks:
-      - radius-net
+      my-net:
+        ipv4_address: 172.100.10.116
+    
+    # Health Check
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U radius -d radius"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
+  # ==========================================
+  # REDIS CACHE
+  # ==========================================
   redis:
     image: redis:7-alpine
     container_name: radius-redis
     restart: unless-stopped
+    
+    # Ports (Optional - comment if not needed)
     ports:
       - "6379:6379"
+    
+    # Volumes
     volumes:
       - redis_data:/data
+    
+    # Network
     networks:
-      - radius-net
-    command: redis-server --appendonly yes
+      my-net:
+        ipv4_address: 172.100.10.117
+    
+    # Command
+    command: redis-server --appendonly yes --requirepass "" --maxmemory 256mb --maxmemory-policy allkeys-lru
+    
+    # Health Check
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
+  # ==========================================
+  # FREERADIUS SERVER
+  # ==========================================
   freeradius:
     image: freeradius/freeradius-server:latest
     container_name: freeradius-server
     restart: unless-stopped
+    
+    # Environment Variables
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -76,27 +141,104 @@ services:
       DB_USER: radius
       DB_PASS: radiuspass
       TZ: Asia/Jakarta
-#    network_mode: host
-    volumes:
-      - ./clients.conf:/etc/freeradius/clients.conf
-      - ./freeradius-config/mods-available/sql:/etc/freeradius/3.0/mods-available/sql
-      - ./freeradius-config/mods-enabled/sql:/etc/freeradius/mods-enabled/sql
-      - ./freeradius-config/sites-enabled/default:/etc/freeradius/sites-enabled/default
+    
+    # Ports
     ports:
-      - "1812:1812/udp"
-      - "1813:1813/udp"
-    command: freeradius -X -l stdout
-    depends_on:
-      - postgres
+      - "1812:1812/udp"  # Authentication
+      - "1813:1813/udp"  # Accounting
+    
+    # Volumes
+    volumes:
+      - ./clients.conf:/etc/freeradius/clients.conf:ro
+      - ./freeradius-config/mods-available/sql:/etc/freeradius/3.0/mods-available/sql:ro
+      - ./freeradius-config/mods-enabled/sql:/etc/freeradius/mods-enabled/sql:ro
+      - ./freeradius-config/sites-enabled/default:/etc/freeradius/sites-enabled/default:ro
+      - ./freeradius-logs:/var/log/freeradius
+    
+    # Network
     networks:
-      - radius-net
+      my-net:
+        ipv4_address: 172.100.10.118
+    
+    # Command (Debug mode - remove -X for production)
+    command: freeradius -X -l stdout
+    
+    # Dependencies
+    depends_on:
+      postgres:
+        condition: service_healthy
 
+  # ==========================================
+  # PGADMIN (Database Management)
+  # ==========================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: freeradius-pgadmin
+    restart: unless-stopped
+    
+    # Traefik Labels
+    labels:
+      - "traefik.enable=true"
+      
+      # HTTP (Redirect to HTTPS)
+      - "traefik.http.routers.pgadmin.entrypoints=web"
+      - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.access.daranett.com`)"
+      - "traefik.http.routers.pgadmin.middlewares=pgadmin-https-redirect"
+      - "traefik.http.middlewares.pgadmin-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.pgadmin-https-redirect.redirectscheme.permanent=true"
+      
+      # HTTPS (Secure)
+      - "traefik.http.routers.pgadmin-secure.entrypoints=websecure"
+      - "traefik.http.routers.pgadmin-secure.rule=Host(`pgadmin.access.daranett.com`)"
+      - "traefik.http.routers.pgadmin-secure.tls=true"
+      - "traefik.http.routers.pgadmin-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.pgadmin-secure.service=pgadmin-service"
+      
+      # Service Configuration
+      - "traefik.http.services.pgadmin-service.loadbalancer.server.port=80"
+    
+    # Environment Variables
+    environment:
+      PGADMIN_DEFAULT_EMAIL: daranett@daranett.cloud
+      PGADMIN_DEFAULT_PASSWORD: 10041994fAk@#
+      PGADMIN_CONFIG_SERVER_MODE: 'True'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+      TZ: Asia/Jakarta
+    
+    # Volumes
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    
+    # Network
+    networks:
+      my-net:
+        ipv4_address: 172.100.10.119
+    
+    # Dependencies
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+# ==========================================
+# NETWORKS
+# ==========================================
 networks:
-  radius-net:
-    driver: bridge
+  my-net:
+    external: true
+    name: my-net
 
+# ==========================================
+# VOLUMES
+# ==========================================
 volumes:
   postgres_data:
     driver: local
+    name: freeradius_postgres_data
+  
   redis_data:
     driver: local
+    name: freeradius_redis_data
+  
+  pgadmin_data:
+    driver: local
+    name: freeradius_pgadmin_data

@@ -6,16 +6,30 @@ sql {
     login = "radius"
     password = "radiuspass"
     radius_db = "radius"
-
-    user_name_attribute = "User-Name"
-
+    
     acct_table1 = "radacct"
+    acct_table2 = "radacct"
     postauth_table = "radpostauth"
-
-    authorize_check_query = "SELECT id, username, attribute, value, op FROM radcheck WHERE username = '%{${user_name_attribute}}' ORDER BY id"
-    authorize_reply_query = "SELECT id, username, attribute, value, op FROM radreply WHERE username = '%{${user_name_attribute}}' ORDER BY id"
-    group_membership_query = "SELECT groupname FROM radusergroup WHERE username='%{${user_name_attribute}}'"
-
+    authcheck_table = "radcheck"
+    groupcheck_table = "radgroupcheck"
+    authreply_table = "radreply"
+    groupreply_table = "radgroupreply"
+    usergroup_table = "radusergroup"
+    
     read_clients = yes
     client_table = "nas"
+    
+    group_membership_query = "SELECT groupname FROM radusergroup WHERE username='%{SQL-User-Name}' ORDER BY priority"
+    
+    authorize_check_query = "SELECT id, username, attribute, value, op FROM ${authcheck_table} WHERE username = '%{SQL-User-Name}' ORDER BY id"
+    
+    authorize_reply_query = "SELECT id, username, attribute, value, op FROM ${authreply_table} WHERE username = '%{SQL-User-Name}' ORDER BY id"
+    
+    authorize_group_check_query = "SELECT id, groupname, attribute, value, op FROM ${groupcheck_table} WHERE groupname = '%{SQL-Group}' ORDER BY id"
+    
+    authorize_group_reply_query = "SELECT id, groupname, attribute, value, op FROM ${groupreply_table} WHERE groupname = '%{SQL-Group}' ORDER BY id"
+    
+    simul_count_query = "SELECT COUNT(*) FROM ${acct_table1} WHERE username = '%{SQL-User-Name}' AND acctstoptime IS NULL"
+    
+    simul_verify_query = "SELECT radacctid, acctsessionid, username, nasipaddress, nasportid, framedipaddress, callingstationid, framedprotocol FROM ${acct_table1} WHERE username = '%{SQL-User-Name}' AND acctstoptime IS NULL"
 }

@@ -1,13 +1,33 @@
-data/
-data/
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Logs
 logs/
+freeradius-logs/
 *.log
+
+# Database & runtime data
+*.db
+*.sqlite3
+pgadmin-data/
+uploads/
+backups/
+data/
+
+# Python
 __pycache__/
 *.pyc
-*.db
-*.pid
-*.env
-*.sqlite3
 venv/
+
+# Env
 .env
+.env.*
+
+# Docker
+*.pid
+
+# OS
 .DS_Store
+Thumbs.db
