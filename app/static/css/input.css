@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Modern Office Styles */
+@layer components {
+  .modern-card {
+    @apply bg-white border border-gray-200 rounded-2xl shadow-sm transition-all duration-300;
+  }
+  
+  .modern-card:hover {
+    @apply shadow-lg transform -translate-y-1;
+  }
+  
+  .modern-btn {
+    @apply transition-all duration-200 font-medium shadow-sm;
+  }
+  
+  .modern-btn:hover {
+    @apply transform -translate-y-0.5 shadow-md;
+  }
+  
+  .modern-badge {
+    @apply text-xs font-semibold px-2.5 py-1 rounded-full tracking-wide;
+  }
+  
+  .glass-effect {
+    @apply bg-white bg-opacity-95 backdrop-blur-xl border border-gray-200;
+  }
+}
+
+/* Custom Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
