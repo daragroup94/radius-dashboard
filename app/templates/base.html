@@ -1,829 +1,100 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}RADIUS Manager{% endblock %}</title>
-    
-    <!-- TAMBAHKAN BARIS INI -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
-    
-    <!-- Lucide Icons - Modern & Clean -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    
-    <!-- Google Fonts - Modern Typography Stack -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <style>
-        * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-        
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Outfit', 'Inter', sans-serif;
-            letter-spacing: -0.025em;
-        }
-        
-        /* Lucide Icon Styling */
-        .lucide {
-            width: 20px;
-            height: 20px;
-            stroke-width: 1.75;
-        }
-        
-        .lucide-lg {
-            width: 22px;
-            height: 22px;
-        }
-        
-        .lucide-xl {
-            width: 24px;
-            height: 24px;
-        }
-        
-        /* Smooth Animations - Enhanced */
-        .fade-in {
-            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        @keyframes fadeIn {
-            from { 
-                opacity: 0; 
-                transform: translateY(30px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
-        }
-        
-        .slide-in {
-            animation: slideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        @keyframes slideIn {
-            from { 
-                transform: translateX(-30px); 
-                opacity: 0; 
-            }
-            to { 
-                transform: translateX(0); 
-                opacity: 1; 
-            }
-        }
-        
-        /* Sidebar Transitions - Dark Theme */
-        .sidebar {
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-            backdrop-filter: blur(20px);
-        }
-        
-        .sidebar.collapsed {
-            width: 80px;
-        }
-        
-        .sidebar.collapsed .nav-text,
-        .sidebar.collapsed .nav-badge,
-        .sidebar.collapsed .logo-text {
-            opacity: 0;
-            width: 0;
-            overflow: hidden;
-        }
-        
-        /* Nav Item Hover Effect - Ultra Modern */
-        .nav-item {
-            position: relative;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            border-radius: 12px;
-            margin: 2px 0;
-            overflow: hidden;
-        }
-        
-        .nav-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
-            transform: scaleY(0);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            border-radius: 0 3px 3px 0;
-        }
-        
-        .nav-item:hover::before,
-        .nav-item.active::before {
-            transform: scaleY(1);
-        }
-        
-        .nav-item::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(90deg, rgba(59, 130, 246, 0.08) 0%, transparent 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .nav-item:hover::after {
-            opacity: 1;
-        }
-        
-        .nav-item:hover {
-            transform: translateX(4px);
-            background: rgba(59, 130, 246, 0.04);
-        }
-        
-        .nav-item.active {
-            background: linear-gradient(90deg, rgba(59, 130, 246, 0.12) 0%, rgba(96, 165, 250, 0.06) 100%);
-            box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.15);
-        }
-        
-        .nav-item .nav-icon {
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        .nav-item:hover .nav-icon {
-            transform: scale(1.1);
-        }
-        
-        .nav-item.active .nav-icon {
-            transform: scale(1.05);
-        }
-        
-        /* Icon Container Modern Style */
-        .nav-icon-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.03);
-            transition: all 0.3s ease;
-        }
-        
-        .nav-item:hover .nav-icon-container {
-            background: rgba(59, 130, 246, 0.12);
-        }
-        
-        .nav-item.active .nav-icon-container {
-            background: rgba(59, 130, 246, 0.15);
-        }
-        
-        /* Gradient Backgrounds */
-        .gradient-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
-        }
-        
-        .gradient-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
-        }
-        
-        /* Card Hover Effects - Enhanced */
-        .card-hover {
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-        }
-        
-        /* Smooth Scroll */
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        /* Custom Scrollbar - Elegant */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+</main>
+</div>
 
-        /* Tooltip - Premium Style */
-        .tooltip {
-            position: absolute;
-            left: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            margin-left: 16px;
-            padding: 8px 14px;
-            background: #1e293b;
-            color: #f1f5f9;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 500;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 1000;
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-        
-        .tooltip::before {
-            content: '';
-            position: absolute;
-            right: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            border: 6px solid transparent;
-            border-right-color: #1e293b;
-        }
-        
-        .nav-item:hover .tooltip {
-            opacity: 1;
-            margin-left: 20px;
-        }
-        
-        .sidebar:not(.collapsed) .tooltip {
-            display: none;
-        }
-        
-        /* Badge Pulse */
-        @keyframes pulse-badge {
-            0%, 100% { 
-                opacity: 1; 
-                transform: scale(1); 
-            }
-            50% { 
-                opacity: 0.7; 
-                transform: scale(1.08); 
-            }
-        }
-        
-        .badge-pulse {
-            animation: pulse-badge 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        
-        /* ===== LIGHT THEME STYLES ===== */
-        
-        /* Main Content Area - Light Background */
-        .main-content {
-            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-            min-height: 100vh;
-        }
-        
-        /* Top Header - Light Theme */
-        .header-light {
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid #e2e8f0 !important;
-        }
-        
-        .header-light h1 {
-            color: #1e293b !important;
-        }
-        
-        .header-light p {
-            color: #64748b !important;
-        }
-        
-        .header-light button {
-            color: #64748b !important;
-        }
-        
-        .header-light button:hover {
-            color: #3b82f6 !important;
-            background: rgba(59, 130, 246, 0.1) !important;
-        }
-        
-        /* Dashboard Cards - Light Theme */
-        .dashboard-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s ease;
-        }
-        
-        .dashboard-card:hover {
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-            transform: translateY(-2px);
-        }
-        
-        /* Stat Cards - Light Theme */
-        .stat-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            transform: translateY(-2px);
-        }
-        
-        /* Card Text Colors */
-        .card-title {
-            color: #1e293b;
-            font-weight: 600;
-        }
-        
-        .card-subtitle {
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-        
-        .card-value {
-            color: #0f172a;
-            font-weight: 700;
-        }
-        
-        .card-label {
-            color: #64748b;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        /* Glass Effect - Light Theme */
-        .glass-light {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(226, 232, 240, 0.6);
-        }
-        
-        /* Sidebar User Section - Keep Dark */
-        .sidebar-user {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(71, 85, 105, 0.2);
-        }
-        
-        /* Glow Effect on Hover */
-        .glow-on-hover {
-            transition: all 0.3s ease;
-        }
-        
-        .glow-on-hover:hover {
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-        }
-        
-        /* Shimmer Loading Effect */
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-        }
-        
-        .shimmer {
-            background: linear-gradient(90deg, 
-                rgba(241, 245, 249, 0.5) 0%, 
-                rgba(226, 232, 240, 0.8) 50%, 
-                rgba(241, 245, 249, 0.5) 100%);
-            background-size: 1000px 100%;
-            animation: shimmer 2s infinite;
-        }
-        
-        /* Section Divider */
-        .section-divider {
-            position: relative;
-            padding: 8px 0;
-        }
-        
-        .section-divider::before {
-            content: '';
-            position: absolute;
-            left: 16px;
-            right: 16px;
-            top: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(71, 85, 105, 0.25), transparent);
-        }
-        
-        /* Icon Colors */
-        .icon-blue { color: #3b82f6; }
-        .icon-emerald { color: #10b981; }
-        .icon-green { color: #22c55e; }
-        .icon-amber { color: #f59e0b; }
-        .icon-cyan { color: #06b6d4; }
-        .icon-slate { color: #64748b; }
-        .icon-indigo { color: #6366f1; }
-        .icon-rose { color: #f43f5e; }
-        .icon-violet { color: #8b5cf6; }
-        
-        /* Badge Styles - Light Theme */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .badge-success {
-            background: #dcfce7;
-            color: #16a34a;
-        }
-        
-        .badge-info {
-            background: #dbeafe;
-            color: #2563eb;
-        }
-        
-        .badge-warning {
-            background: #fef3c7;
-            color: #d97706;
-        }
-        
-        .badge-danger {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-        
-        /* Table Styles - Light Theme */
-        .table-light {
-            background: #ffffff;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        
-        .table-light th {
-            background: #f8fafc;
-            color: #475569;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.05em;
-            padding: 12px 16px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .table-light td {
-            padding: 14px 16px;
-            border-bottom: 1px solid #f1f5f9;
-            color: #334155;
-        }
-        
-        .table-light tr:hover td {
-            background: #f8fafc;
-        }
-        
-        /* Button Styles */
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
-        }
-        
-        .btn-secondary {
-            background: #f1f5f9;
-            color: #475569;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: 1px solid #e2e8f0;
-            cursor: pointer;
-        }
-        
-        .btn-secondary:hover {
-            background: #e2e8f0;
-        }
-        
-        /* Input Styles */
-        .input-light {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 12px 16px;
-            color: #1e293b;
-            transition: all 0.3s ease;
-        }
-        
-        .input-light:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        
-        .input-light::placeholder {
-            color: #94a3b8;
-        }
-    </style>
+<!-- Scripts -->
+<script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
     
-    {% block extra_css %}{% endblock %}
-</head>
-<body class="bg-slate-100 min-h-screen">
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const mainContent = document.getElementById('mainContent');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileOverlay = document.getElementById('mobileOverlay');
 
-    <!-- Mobile Overlay -->
-    <div id="mobileOverlay" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40 lg:hidden hidden transition-opacity duration-300"></div>
+    // Desktop Toggle
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+                mainContent.classList.remove('lg:ml-72');
+                mainContent.classList.add('lg:ml-20');
+            } else {
+                mainContent.classList.remove('lg:ml-20');
+                mainContent.classList.add('lg:ml-72');
+            }
+        });
+    }
 
-    <!-- Sidebar - Dark Theme -->
-    <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-50 w-72 shadow-2xl flex flex-col -translate-x-full lg:translate-x-0 border-r border-slate-700/30">
+    // Mobile Toggle
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            mobileOverlay.classList.remove('hidden');
+        });
+    }
+
+    if (mobileOverlay) {
+        mobileOverlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            mobileOverlay.classList.add('hidden');
+        });
+    }
+
+    // Notification System
+    window.showNotification = function(message, type = 'info') {
+        const styles = {
+            success: 'bg-green-50 border-green-200 text-green-700',
+            error: 'bg-red-50 border-red-200 text-red-700',
+            warning: 'bg-amber-50 border-amber-200 text-amber-700',
+            info: 'bg-blue-50 border-blue-200 text-blue-700'
+        };
         
-        <!-- Logo Section -->
-        <div class="flex items-center justify-between p-5 border-b border-slate-700/30">
-            <div class="flex items-center space-x-3">
-                <div class="w-11 h-11 gradient-primary rounded-xl flex items-center justify-center shadow-xl glow-on-hover transform transition-transform hover:scale-105">
-                    <i data-lucide="radio-tower" class="lucide-lg text-white"></i>
-                </div>
-                <div class="logo-text transition-all duration-300">
-                    <h1 class="text-lg font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent leading-tight tracking-tight">
-                        RADIUS
-                    </h1>
-                    <p class="text-[10px] text-slate-500 font-medium tracking-widest uppercase">Manager Pro</p>
-                </div>
-            </div>
-            <button id="sidebarToggle" class="hidden lg:block p-2 hover:bg-slate-700/40 rounded-lg transition-all duration-300">
-                <i data-lucide="panel-left-close" class="lucide text-slate-400"></i>
+        const iconName = {
+            success: 'check-circle',
+            error: 'alert-circle',
+            warning: 'alert-triangle',
+            info: 'info'
+        }[type];
+
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 ${styles[type]} border px-5 py-3.5 rounded-xl shadow-lg fade-in flex items-center space-x-3`;
+        notification.innerHTML = `
+            <i data-lucide="${iconName}" class="lucide"></i>
+            <span class="font-medium text-sm">${message}</span>
+            <button onclick="this.parentElement.remove()" class="ml-3 opacity-60 hover:opacity-100 transition-opacity p-1.5 hover:bg-black/5 rounded-lg">
+                <i data-lucide="x" class="lucide w-4 h-4"></i>
             </button>
-        </div>
-
-        <!-- Navigation -->
-        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
-            
-            <!-- Dashboard -->
-            <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %} flex items-center space-x-3 px-3 py-3 cursor-pointer group">
-                <div class="nav-icon-container">
-                    <i data-lucide="layout-dashboard" class="lucide nav-icon icon-indigo"></i>
-                </div>
-                <span class="nav-text flex-1 font-medium text-slate-200 text-sm">Dashboard</span>
-                <span class="tooltip">Dashboard</span>
-            </a>
-
-            <!-- Network Section -->
-            <div class="section-divider">
-                <div class="px-3 py-2 mt-3">
-                    <div class="logo-text">
-                        <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em]">Network</p>
-                    </div>
-                </div>
-            </div>
-
-            <a href="/nas" class="nav-item {% if request.path == '/nas' %}active{% endif %} flex items-center space-x-3 px-3 py-3 cursor-pointer group">
-                <div class="nav-icon-container">
-                    <i data-lucide="hard-drive" class="lucide nav-icon icon-cyan"></i>
-                </div>
-                <span class="nav-text flex-1 font-medium text-slate-200 text-sm">NAS Devices</span>
-                <span class="tooltip">NAS Devices</span>
-            </a>
-
-            <a href="/users" class="nav-item {% if request.path == '/users' %}active{% endif %} flex items-center space-x-3 px-3 py-3 cursor-pointer group">
-                <div class="nav-icon-container">
-                    <i data-lucide="users" class="lucide nav-icon icon-emerald"></i>
-                </div>
-                <span class="nav-text flex-1 font-medium text-slate-200 text-sm">PPPoE Users</span>
-                <span class="tooltip">PPPoE Users</span>
-            </a>
-
-            <a href="/sessions" class="nav-item {% if request.path == '/sessions' %}active{% endif %} flex items-center space-x-3 px-3 py-3 cursor-pointer group">
-                <div class="nav-icon-container">
-                    <i data-lucide="activity" class="lucide nav-icon icon-green"></i>
-                </div>
-                <span class="nav-text flex-1 font-medium text-slate-200 text-sm">Active Sessions</span>
-                <span class="tooltip">Active Sessions</span>
-            </a>
-
-            <a href="/logs" class="nav-item {% if request.path == '/logs' %}active{% endif %} flex items-center space-x-3 px-3 py-3 cursor-pointer group">
-                <div class="nav-icon-container">
-                    <i data-lucide="file-text" class="lucide nav-icon icon-amber"></i>
-                </div>
-                <span class="nav-text flex-1 font-medium text-slate-200 text-sm">Auth Logs</span>
-                <span class="tooltip">Authentication Logs</span>
-            </a>
-
-            <!-- Settings Section -->
-            <div class="section-divider">
-                <div class="px-3 py-2 pt-4">
-                    <div class="logo-text">
-                        <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em]">Settings</p>
-                    </div>
-                </div>
-            </div>
-
-            <a href="/backup" class="nav-item {% if request.path == '/backup' %}active{% endif %} flex items-center space-x-3 px-3 py-3 cursor-pointer group">
-                <div class="nav-icon-container">
-                    <i data-lucide="cloud-upload" class="lucide nav-icon icon-blue"></i>
-                </div>
-                <span class="nav-text flex-1 font-medium text-slate-200 text-sm">Backup & Restore</span>
-                <span class="tooltip">Backup & Restore</span>
-            </a>
-
-            <a href="/profile" class="nav-item {% if request.path == '/profile' %}active{% endif %} flex items-center space-x-3 px-3 py-3 cursor-pointer group">
-                <div class="nav-icon-container">
-                    <i data-lucide="user-cog" class="lucide nav-icon icon-slate"></i>
-                </div>
-                <span class="nav-text flex-1 font-medium text-slate-200 text-sm">Profile</span>
-                <span class="tooltip">User Profile</span>
-            </a>
-
-        </nav>
-
-        <!-- User Profile Section -->
-        <div class="border-t border-slate-700/30 p-3">
-            <div class="flex items-center space-x-3 p-3 hover:bg-slate-700/30 rounded-xl cursor-pointer transition-all duration-300 group sidebar-user">
-                <div class="relative">
-                    <div class="w-10 h-10 gradient-success rounded-xl flex items-center justify-center shadow-lg">
-                        <i data-lucide="user" class="lucide text-white"></i>
-                    </div>
-                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full animate-pulse shadow-lg shadow-emerald-500/50"></div>
-                </div>
-                <div class="flex-1 logo-text min-w-0">
-                    <p class="text-sm font-semibold text-slate-100 truncate">{{ session.username }}</p>
-                    <p class="text-[11px] text-slate-400 capitalize font-medium">{{ session.role }}</p>
-                </div>
-                <a href="/logout" class="opacity-0 group-hover:opacity-100 transition-all duration-300 p-2 hover:bg-red-500/20 rounded-lg">
-                    <i data-lucide="log-out" class="lucide text-red-400 hover:text-red-300"></i>
-                </a>
-            </div>
-        </div>
-
-    </aside>
-
-    <!-- Main Content - Light Theme -->
-    <div class="lg:ml-72 transition-all duration-300 main-content" id="mainContent">
-        
-        <!-- Top Header - Light Theme -->
-        <header class="header-light shadow-sm sticky top-0 z-30 slide-in">
-            <div class="px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between h-16">
-                    
-                    <!-- Mobile Menu + Page Title -->
-                    <div class="flex items-center space-x-4">
-                        <button id="mobileMenuBtn" class="lg:hidden p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-300">
-                            <i data-lucide="menu" class="lucide-lg text-slate-600"></i>
-                        </button>
-                        <div>
-                            <h1 class="text-lg font-semibold text-slate-800 tracking-tight">{% block page_title %}Dashboard{% endblock %}</h1>
-                            <p class="text-[11px] text-slate-500 hidden sm:block font-medium">{% block page_subtitle %}Real-time Network Monitoring & Analytics{% endblock %}</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Right Actions -->
-                    <div class="flex items-center space-x-1">
-                        <button class="relative p-2.5 text-slate-500 hover:text-blue-600 transition-all duration-300 hover:bg-blue-50 rounded-xl hidden sm:block">
-                            <i data-lucide="bell" class="lucide"></i>
-                            <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
-                            <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
-                        </button>
-                        
-                        <button class="p-2.5 text-slate-500 hover:text-blue-600 transition-all duration-300 hover:bg-blue-50 rounded-xl hidden sm:block">
-                            <i data-lucide="search" class="lucide"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Page Content -->
-        <main class="p-4 sm:p-6 lg:p-8">
-            
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="mb-6 space-y-2">
-                        {% for category, message in messages %}
-                            <div class="fade-in p-4 rounded-xl border {% if category == 'error' %}bg-red-50 border-red-200 text-red-700{% elif category == 'success' %}bg-green-50 border-green-200 text-green-700{% elif category == 'warning' %}bg-amber-50 border-amber-200 text-amber-700{% else %}bg-blue-50 border-blue-200 text-blue-700{% endif %} flex items-center justify-between shadow-sm">
-                                <div class="flex items-center">
-                                    <i data-lucide="{% if category == 'error' %}alert-circle{% elif category == 'success' %}check-circle{% elif category == 'warning' %}alert-triangle{% else %}info{% endif %}" class="lucide mr-3"></i>
-                                    <span class="font-medium text-sm">{{ message }}</span>
-                                </div>
-                                <button onclick="this.parentElement.remove()" class="text-current opacity-60 hover:opacity-100 transition-opacity p-2 hover:bg-black/5 rounded-lg">
-                                    <i data-lucide="x" class="lucide w-4 h-4"></i>
-                                </button>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
-
-            <!-- Main Content Block -->
-            {% block content %}{% endblock %}
-            
-        </main>
-    </div>
-
-    <!-- Scripts -->
-    <script>
-        // Initialize Lucide Icons
+        `;
+        document.body.appendChild(notification);
         lucide.createIcons();
-        
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const mainContent = document.getElementById('mainContent');
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const mobileOverlay = document.getElementById('mobileOverlay');
 
-        // Desktop Toggle
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('collapsed');
-                if (sidebar.classList.contains('collapsed')) {
-                    mainContent.classList.remove('lg:ml-72');
-                    mainContent.classList.add('lg:ml-20');
-                } else {
-                    mainContent.classList.remove('lg:ml-20');
-                    mainContent.classList.add('lg:ml-72');
-                }
-            });
-        }
-
-        // Mobile Toggle
-        if (mobileMenuBtn) {
-            mobileMenuBtn.addEventListener('click', () => {
-                sidebar.classList.remove('-translate-x-full');
-                mobileOverlay.classList.remove('hidden');
-            });
-        }
-
-        if (mobileOverlay) {
-            mobileOverlay.addEventListener('click', () => {
-                sidebar.classList.add('-translate-x-full');
-                mobileOverlay.classList.add('hidden');
-            });
-        }
-
-        // Notification System
-        window.showNotification = function(message, type = 'info') {
-            const styles = {
-                success: 'bg-green-50 border-green-200 text-green-700',
-                error: 'bg-red-50 border-red-200 text-red-700',
-                warning: 'bg-amber-50 border-amber-200 text-amber-700',
-                info: 'bg-blue-50 border-blue-200 text-blue-700'
-            };
-            
-            const iconName = {
-                success: 'check-circle',
-                error: 'alert-circle',
-                warning: 'alert-triangle',
-                info: 'info'
-            }[type];
-
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-50 ${styles[type]} border px-5 py-3.5 rounded-xl shadow-lg fade-in flex items-center space-x-3`;
-            notification.innerHTML = `
-                <i data-lucide="${iconName}" class="lucide"></i>
-                <span class="font-medium text-sm">${message}</span>
-                <button onclick="this.parentElement.remove()" class="ml-3 opacity-60 hover:opacity-100 transition-opacity p-1.5 hover:bg-black/5 rounded-lg">
-                    <i data-lucide="x" class="lucide w-4 h-4"></i>
-                </button>
-            `;
-            document.body.appendChild(notification);
-            lucide.createIcons();
-
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.style.opacity = '0';
-                    notification.style.transform = 'translateX(100%)';
-                    notification.style.transition = 'all 0.3s ease';
-                    setTimeout(() => notification.remove(), 300);
-                }
-            }, 5000);
-        };
-
-        // API Helper
-        window.apiCall = async function(url, options = {}) {
-            try {
-                const response = await fetch(url, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...options.headers
-                    },
-                    ...options
-                });
-                return await response.json();
-            } catch (error) {
-                showNotification('Network error: ' + error.message, 'error');
-                return { success: false, error: error.message };
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                notification.style.transition = 'all 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
             }
-        };
-    </script>
+        }, 5000);
+    };
 
-    {% block scripts %}{% endblock %}
-</body>
-</html>
+    // API Helper
+    window.apiCall = async function(url, options = {}) {
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            });
+            return await response.json();
+        } catch (error) {
+            showNotification('Network error: ' + error.message, 'error');
+            return { success: false, error: error.message };
+        }
+    };
+</script>
+
+{% block scripts %}{% endblock %}
