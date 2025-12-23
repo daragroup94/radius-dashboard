@@ -4,119 +4,182 @@
 {% block page_title %}Backup & Restore{% endblock %}
 {% block page_subtitle %}Database Backup Management & Recovery{% endblock %}
 
+{% block extra_css %}
+<style>
+    .icon-gradient-backup { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .icon-gradient-upload { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .icon-gradient-create { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    
+    /* Lucide icon sizing */
+    .lucide-xs { width: 14px; height: 14px; }
+    .lucide-sm { width: 16px; height: 16px; }
+    .lucide-md { width: 20px; height: 20px; }
+    .lucide-lg { width: 24px; height: 24px; }
+    .lucide-xl { width: 28px; height: 28px; }
+    .lucide-2xl { width: 32px; height: 32px; }
+    .lucide-3xl { width: 36px; height: 36px; }
+    
+    /* Animation for spinner */
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="fade-in">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <div>
-            <h2 class="text-xl font-semibold text-gray-100">Database Backup Management</h2>
-            <p class="text-gray-400">Create, download, and restore database backups</p>
-        </div>
-        <div class="flex space-x-3 mt-4 md:mt-0">
-            <button onclick="uploadBackup()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-                <i class="fas fa-upload"></i>
-                <span>Upload Backup</span>
-            </button>
-            <button onclick="createBackup()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-                <i class="fas fa-database"></i>
-                <span>Create Backup</span>
-            </button>
+    <!-- Header with Action Buttons -->
+    <div class="modern-card rounded-3xl p-8 shadow-xl mb-8">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div class="flex items-center">
+                <div class="w-16 h-16 icon-gradient-backup rounded-2xl flex items-center justify-center mr-4 shadow-lg floating-icon">
+                    <i data-lucide="database" class="lucide text-white lucide-3xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800">Database Backup Management</h3>
+                    <p class="text-sm text-gray-500 mt-1">Create, download, and restore database backups securely</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-3">
+                <button onclick="uploadBackup()" 
+                        class="bg-gradient-to-br from-pink-500 via-rose-500 to-red-600 hover:from-pink-600 hover:via-rose-600 hover:to-red-700 text-white px-6 py-3.5 rounded-xl flex items-center gap-2.5 font-bold shadow-[0_10px_40px_rgba(236,72,153,0.4)] hover:shadow-[0_15px_50px_rgba(236,72,153,0.6)] transition-all duration-300 transform hover:scale-105 border-2 border-white/40">
+                    <i data-lucide="upload" class="lucide lucide-xl"></i>
+                    <span>Upload Backup</span>
+                </button>
+                <button onclick="createBackup()" 
+                        class="bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600 hover:from-cyan-600 hover:via-blue-600 hover:to-indigo-700 text-white px-6 py-3.5 rounded-xl flex items-center gap-2.5 font-bold shadow-[0_10px_40px_rgba(59,130,246,0.4)] hover:shadow-[0_15px_50px_rgba(59,130,246,0.6)] transition-all duration-300 transform hover:scale-105 border-2 border-white/40">
+                    <i data-lucide="plus-circle" class="lucide lucide-xl"></i>
+                    <span>Create Backup</span>
+                </button>
+            </div>
         </div>
     </div>
 
-    <div class="bg-yellow-900/30 border-l-4 border-yellow-600 p-4 mb-6 rounded-r-lg">
-        <div class="flex">
+    <!-- Warning Banner -->
+    <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl p-6 mb-8 shadow-lg">
+        <div class="flex items-start gap-4">
             <div class="flex-shrink-0">
-                <i class="fas fa-exclamation-triangle text-yellow-400 text-xl"></i>
-            </div>
-            <div class="ml-3">
-                <h3 class="text-sm font-medium text-yellow-300">Important Information</h3>
-                <div class="mt-2 text-sm text-yellow-400">
-                    <ul class="list-disc list-inside space-y-1">
-                        <li>Always create a backup before performing major changes</li>
-                        <li>Store backup files in a safe location outside of server</li>
-                        <li>Restore operation will overwrite all current data</li>
-                        <li>Backup includes: Users, NAS, Sessions, Billing data</li>
-                    </ul>
+                <div class="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md">
+                    <i data-lucide="alert-triangle" class="lucide text-white lucide-xl"></i>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-gradient-to-br from-blue-900/30 to-blue-800/30 rounded-xl p-6 border border-blue-800/50">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-blue-300 font-medium">Total Backups</p>
-                    <p id="totalBackups" class="text-3xl font-bold text-blue-100 mt-1">0</p>
-                </div>
-                <div class="bg-blue-800/50 rounded-full p-3">
-                    <i class="fas fa-archive text-blue-400 text-2xl"></i>
-                </div>
-            </div>
-        </div>
-       
-        <div class="bg-gradient-to-br from-green-900/30 to-green-800/30 rounded-xl p-6 border border-green-800/50">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-green-300 font-medium">Latest Backup</p>
-                    <p id="latestBackup" class="text-sm font-bold text-green-100 mt-2">-</p>
-                </div>
-                <div class="bg-green-800/50 rounded-full p-3">
-                    <i class="fas fa-clock text-green-400 text-2xl"></i>
-                </div>
-            </div>
-        </div>
-       
-        <div class="bg-gradient-to-br from-purple-900/30 to-purple-800/30 rounded-xl p-6 border border-purple-800/50">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-purple-300 font-medium">Total Size</p>
-                    <p id="totalSize" class="text-2xl font-bold text-purple-100 mt-1">0 MB</p>
-                </div>
-                <div class="bg-purple-800/50 rounded-full p-3">
-                    <i class="fas fa-hdd text-purple-400 text-2xl"></i>
-                </div>
-            </div>
-        </div>
-       
-        <div class="bg-gradient-to-br from-orange-900/30 to-orange-800/30 rounded-xl p-6 border border-orange-800/50">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-orange-300 font-medium">Auto Backup</p>
-                    <p class="text-lg font-bold text-orange-100 mt-2">Manual</p>
-                </div>
-                <div class="bg-orange-800/50 rounded-full p-3">
-                    <i class="fas fa-robot text-orange-400 text-2xl"></i>
+            <div class="flex-1">
+                <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                    <i data-lucide="shield" class="lucide lucide-md text-amber-600 mr-2"></i>
+                    Important Security Information
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="flex items-start text-sm text-gray-700 bg-white/70 px-4 py-3 rounded-xl">
+                        <i data-lucide="check-circle" class="lucide lucide-sm text-green-600 mr-2 mt-0.5"></i>
+                        <span><strong>Always backup</strong> before major changes</span>
+                    </div>
+                    <div class="flex items-start text-sm text-gray-700 bg-white/70 px-4 py-3 rounded-xl">
+                        <i data-lucide="check-circle" class="lucide lucide-sm text-green-600 mr-2 mt-0.5"></i>
+                        <span><strong>Store backups</strong> in safe external location</span>
+                    </div>
+                    <div class="flex items-start text-sm text-gray-700 bg-white/70 px-4 py-3 rounded-xl">
+                        <i data-lucide="alert-circle" class="lucide lucide-sm text-red-600 mr-2 mt-0.5"></i>
+                        <span><strong>Restore overwrites</strong> all current data</span>
+                    </div>
+                    <div class="flex items-start text-sm text-gray-700 bg-white/70 px-4 py-3 rounded-xl">
+                        <i data-lucide="info" class="lucide lucide-sm text-blue-600 mr-2 mt-0.5"></i>
+                        <span><strong>Includes:</strong> Users, NAS, Sessions, Billing</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg border border-gray-700 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-700 bg-gray-700/50">
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="modern-card rounded-2xl p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 hover:border-blue-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl">
             <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-100">Available Backups</h3>
-                <button onclick="loadBackups()" class="text-blue-400 hover:text-blue-300 transition-colors">
-                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                <div>
+                    <p class="text-sm font-bold text-gray-600 mb-1">Total Backups</p>
+                    <p id="totalBackups" class="text-4xl font-black text-gray-800">0</p>
+                </div>
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i data-lucide="archive" class="lucide text-white lucide-2xl"></i>
+                </div>
+            </div>
+        </div>
+       
+        <div class="modern-card rounded-2xl p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 hover:border-green-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl">
+            <div class="flex items-center justify-between">
+                <div class="flex-1 mr-2">
+                    <p class="text-sm font-bold text-gray-600 mb-1">Latest Backup</p>
+                    <p id="latestBackup" class="text-sm font-bold text-gray-800 leading-tight">-</p>
+                </div>
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                    <i data-lucide="clock" class="lucide text-white lucide-2xl"></i>
+                </div>
+            </div>
+        </div>
+       
+        <div class="modern-card rounded-2xl p-6 bg-gradient-to-br from-purple-50 to-violet-50 border-2 border-purple-200 hover:border-purple-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-bold text-gray-600 mb-1">Total Size</p>
+                    <p id="totalSize" class="text-3xl font-black text-gray-800">0 MB</p>
+                </div>
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i data-lucide="hard-drive" class="lucide text-white lucide-2xl"></i>
+                </div>
+            </div>
+        </div>
+       
+        <div class="modern-card rounded-2xl p-6 bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 hover:border-orange-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-bold text-gray-600 mb-1">Auto Backup</p>
+                    <p class="text-2xl font-black text-gray-800">Manual</p>
+                </div>
+                <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i data-lucide="bot" class="lucide text-white lucide-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backups Table -->
+    <div class="modern-card rounded-3xl overflow-hidden shadow-xl">
+        <div class="px-8 py-6 bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i data-lucide="list" class="lucide text-white lucide-lg"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800">Available Backups</h3>
+                </div>
+                <button onclick="loadBackups()" 
+                        class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all transform hover:scale-105 shadow-md">
+                    <i data-lucide="refresh-cw" class="lucide lucide-sm mr-2"></i>Refresh
                 </button>
             </div>
         </div>
        
         <div class="overflow-x-auto">
             <table class="w-full">
-                <thead class="bg-gray-700/50">
+                <thead class="bg-gradient-to-r from-gray-100 to-gray-200">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Filename</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Created At</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Size</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                        <th class="px-6 py-4 text-left text-sm font-black text-gray-700 uppercase tracking-wider">Filename</th>
+                        <th class="px-6 py-4 text-left text-sm font-black text-gray-700 uppercase tracking-wider">Created At</th>
+                        <th class="px-6 py-4 text-left text-sm font-black text-gray-700 uppercase tracking-wider">Size</th>
+                        <th class="px-6 py-4 text-left text-sm font-black text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
-                <tbody id="backupsTable" class="bg-gray-800/50 divide-y divide-gray-700">
+                <tbody id="backupsTable" class="bg-white divide-y-2 divide-gray-100">
                     <tr>
-                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">
-                            <div class="animate-spin h-8 w-8 border-b-2 border-blue-400 mx-auto mb-2"></div>
-                            <p>Loading backups...</p>
+                        <td colspan="4" class="px-6 py-12 text-center">
+                            <div class="relative w-20 h-20 mx-auto mb-4">
+                                <div class="absolute inset-0 border-4 border-blue-200 rounded-full"></div>
+                                <div class="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+                            </div>
+                            <p class="text-gray-700 font-bold text-lg">Loading backups...</p>
                         </td>
                     </tr>
                 </tbody>
@@ -126,46 +189,75 @@
 </div>
 
 <!-- Upload Modal -->
-<div id="uploadModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50">
-    <div class="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md mx-4 border border-gray-700">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-100">Upload Backup File</h3>
-            <button onclick="hideUploadModal()" class="text-gray-400 hover:text-gray-200">
-                <i class="fas fa-times"></i>
+<div id="uploadModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+    <div class="modern-card rounded-3xl shadow-2xl p-8 w-full max-w-lg border-2 border-white/20">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 icon-gradient-upload rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                    <i data-lucide="upload" class="lucide text-white lucide-lg"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Upload Backup File</h3>
+            </div>
+            <button onclick="hideUploadModal()" class="w-10 h-10 bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600 rounded-xl transition-all">
+                <i data-lucide="x" class="lucide lucide-xl"></i>
             </button>
         </div>
+        
         <form id="uploadForm" enctype="multipart/form-data">
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-300 mb-2">Select Backup File (.sql)</label>
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-gray-700 mb-3">
+                    <i data-lucide="file-archive" class="lucide lucide-sm text-blue-500 mr-2"></i>Select Backup File (.sql)
+                </label>
                 <input type="file" id="backupFile" accept=".sql" required
-                       class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-100">
-                <p class="text-xs text-gray-400 mt-2">Only .sql files are allowed</p>
+                       class="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-800 font-medium file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200">
+                <p class="text-xs text-gray-600 mt-2 flex items-center">
+                    <i data-lucide="info" class="lucide lucide-xs mr-2"></i>Only .sql files are allowed
+                </p>
             </div>
+            
             <div class="flex space-x-3">
-                <button type="button" onclick="hideUploadModal()" class="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors">Cancel</button>
-                <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">Upload</button>
+                <button type="button" onclick="hideUploadModal()" 
+                        class="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-bold text-base transition-all">
+                    <i data-lucide="x" class="lucide lucide-sm mr-2"></i>Cancel
+                </button>
+                <button type="submit" 
+                        class="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-bold text-base shadow-lg transition-all">
+                    <i data-lucide="upload" class="lucide lucide-sm mr-2"></i>Upload
+                </button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Restore Confirmation Modal -->
-<div id="restoreModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50">
-    <div class="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md mx-4 border border-gray-700">
+<div id="restoreModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+    <div class="modern-card rounded-3xl shadow-2xl p-8 w-full max-w-lg border-2 border-red-200">
         <div class="text-center">
-            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-900/30 mb-4">
-                <i class="fas fa-exclamation-triangle text-red-400 text-3xl"></i>
+            <div class="mx-auto flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 mb-6 shadow-lg">
+                <i data-lucide="alert-triangle" class="lucide text-white lucide-3xl"></i>
             </div>
-            <h3 class="text-lg font-medium text-gray-100 mb-2">Restore Database?</h3>
-            <p class="text-sm text-gray-400 mb-4">This will restore the database from:</p>
-            <p class="text-sm font-semibold text-gray-300 mb-4" id="restoreFilename">-</p>
-            <div class="bg-red-900/30 border border-red-800/50 rounded-lg p-3 mb-4">
-                <p class="text-xs text-red-300 font-medium">WARNING: This will overwrite ALL current data!</p>
+            <h3 class="text-2xl font-black text-gray-800 mb-3">Restore Database?</h3>
+            <p class="text-sm text-gray-600 font-medium mb-2">This will restore the database from:</p>
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-4 mb-4">
+                <p class="text-base font-bold text-gray-800" id="restoreFilename">-</p>
+            </div>
+            <div class="bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-400 rounded-xl p-4 mb-6">
+                <p class="text-sm text-red-700 font-bold flex items-center justify-center">
+                    <i data-lucide="alert-triangle" class="lucide lucide-sm mr-2"></i>
+                    WARNING: This will overwrite ALL current data!
+                </p>
             </div>
         </div>
-        <div class="flex space-x-3 mt-6">
-            <button type="button" onclick="hideRestoreModal()" class="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors">Cancel</button>
-            <button type="button" onclick="confirmRestore()" class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">Restore Now</button>
+        
+        <div class="flex space-x-3">
+            <button type="button" onclick="hideRestoreModal()" 
+                    class="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-bold text-base transition-all">
+                <i data-lucide="x" class="lucide lucide-sm mr-2"></i>Cancel
+            </button>
+            <button type="button" onclick="confirmRestore()" 
+                    class="flex-1 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white px-6 py-3 rounded-xl font-bold text-base shadow-lg transition-all">
+                <i data-lucide="undo-2" class="lucide lucide-sm mr-2"></i>Restore Now
+            </button>
         </div>
     </div>
 </div>
@@ -173,8 +265,9 @@
 
 {% block scripts %}
 <script>
-// Tidak pakai variabel global backupToRestore lagi → lebih aman
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Lucide icons when the page loads
+    lucide.createIcons();
     loadBackups();
 });
 
@@ -214,43 +307,62 @@ function renderBackupsTable(backups) {
     if (backups.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="4" class="px-6 py-8 text-center text-gray-500">
-                    <i class="fas fa-inbox text-3xl text-gray-600 mb-2"></i>
-                    <p class="font-medium">No backups available</p>
-                    <p class="text-sm mt-1">Click "Create Backup" to create your first backup</p>
+                <td colspan="4" class="px-6 py-16 text-center">
+                    <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <i data-lucide="inbox" class="lucide text-gray-400 lucide-3xl"></i>
+                    </div>
+                    <p class="text-gray-700 font-bold text-xl mb-2">No Backups Available</p>
+                    <p class="text-gray-500 mb-6">Click "Create Backup" to create your first database backup</p>
+                    <button onclick="createBackup()" class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition-all">
+                        <i data-lucide="plus-circle" class="lucide lucide-sm mr-2"></i>Create First Backup
+                    </button>
                 </td>
             </tr>
         `;
+        // Initialize Lucide icons after adding them to the DOM
+        lucide.createIcons();
         return;
     }
    
     tbody.innerHTML = backups.map(backup => `
-        <tr class="hover:bg-gray-700/50 transition-colors">
-            <td class="px-6 py-4 whitespace-nowrap">
+        <tr class="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all">
+            <td class="px-6 py-4">
                 <div class="flex items-center">
-                    <i class="fas fa-file-archive text-blue-400 mr-3 text-lg"></i>
-                    <div class="text-sm font-medium text-gray-100">${backup.filename}</div>
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mr-3 shadow-md">
+                        <i data-lucide="file-archive" class="lucide text-white"></i>
+                    </div>
+                    <div class="text-sm font-bold text-gray-800">${backup.filename}</div>
                 </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${backup.created_at}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <span class="text-sm font-medium text-gray-400">${backup.size_human}</span>
+            <td class="px-6 py-4">
+                <span class="text-sm font-medium text-gray-700">${backup.created_at}</span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
-                    <button onclick="downloadBackup('${backup.filename}')" class="text-blue-400 hover:text-blue-300 bg-blue-900/30 hover:bg-blue-900/50 px-3 py-1 rounded transition-colors">
-                        <i class="fas fa-download mr-1"></i>Download
+            <td class="px-6 py-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700">
+                    <i data-lucide="database" class="lucide lucide-xs mr-1"></i>${backup.size_human}
+                </span>
+            </td>
+            <td class="px-6 py-4">
+                <div class="flex gap-2">
+                    <button onclick="downloadBackup('${backup.filename}')" 
+                            class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all transform hover:scale-105 shadow-md">
+                        <i data-lucide="download" class="lucide lucide-xs mr-1"></i>Download
                     </button>
-                    <button onclick="showRestoreModal('${backup.filename}')" class="text-green-400 hover:text-green-300 bg-green-900/30 hover:bg-green-900/50 px-3 py-1 rounded transition-colors">
-                        <i class="fas fa-undo mr-1"></i>Restore
+                    <button onclick="showRestoreModal('${backup.filename}')" 
+                            class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all transform hover:scale-105 shadow-md">
+                        <i data-lucide="undo-2" class="lucide lucide-xs mr-1"></i>Restore
                     </button>
-                    <button onclick="deleteBackup('${backup.filename}')" class="text-red-400 hover:text-red-300 bg-red-900/30 hover:bg-red-900/50 px-3 py-1 rounded transition-colors">
-                        <i class="fas fa-trash mr-1"></i>Delete
+                    <button onclick="deleteBackup('${backup.filename}')" 
+                            class="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all transform hover:scale-105 shadow-md">
+                        <i data-lucide="trash-2" class="lucide lucide-xs mr-1"></i>Delete
                     </button>
                 </div>
             </td>
         </tr>
     `).join('');
+    
+    // Initialize Lucide icons after adding them to the DOM
+    lucide.createIcons();
 }
 
 async function createBackup() {
@@ -277,6 +389,9 @@ function downloadBackup(filename) {
 function showRestoreModal(filename) {
     document.getElementById('restoreFilename').textContent = filename;
     document.getElementById('restoreModal').classList.remove('hidden');
+    
+    // Initialize Lucide icons for modal
+    lucide.createIcons();
 }
 
 function hideRestoreModal() {
@@ -284,7 +399,6 @@ function hideRestoreModal() {
     document.getElementById('restoreFilename').textContent = '-';
 }
 
-// PERBAIKAN UTAMA: ambil filename langsung dari modal, bukan variabel global
 async function confirmRestore() {
     const filename = document.getElementById('restoreFilename').textContent.trim();
     
@@ -334,6 +448,9 @@ async function deleteBackup(filename) {
 
 function uploadBackup() {
     document.getElementById('uploadModal').classList.remove('hidden');
+    
+    // Initialize Lucide icons for modal
+    lucide.createIcons();
 }
 
 function hideUploadModal() {
@@ -377,10 +494,45 @@ function formatBytes(bytes) {
 
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 bg-${type === 'success' ? 'green' : type === 'error' ? 'red' : 'blue'}-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity`;
-    notification.innerHTML = `<div class="flex items-center space-x-2"><i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i><span>${message}</span></div>`;
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-xl shadow-lg z-50 flex items-center space-x-2 transform transition-all duration-300 translate-x-full`;
+    
+    const colors = {
+        success: 'bg-green-500 text-white',
+        error: 'bg-red-500 text-white',
+        info: 'bg-blue-500 text-white',
+        warning: 'bg-yellow-500 text-white'
+    };
+    
+    notification.classList.add(...colors[type].split(' '));
+    
+    const icons = {
+        success: 'check-circle',
+        error: 'alert-circle',
+        info: 'info',
+        warning: 'alert-triangle'
+    };
+    
+    notification.innerHTML = `
+        <i data-lucide="${icons[type]}" class="lucide"></i>
+        <span class="font-semibold">${message}</span>
+    `;
+    
     document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 5000);
+    
+    // Initialize Lucide icon for notification
+    lucide.createIcons();
+    
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+        notification.classList.add('translate-x-0');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 5000);
 }
 </script>
 {% endblock %}
