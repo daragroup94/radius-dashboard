@@ -4,79 +4,240 @@
 {% block page_title %}User Profile{% endblock %}
 {% block page_subtitle %}Manage your account settings{% endblock %}
 
+{% block extra_css %}
+<style>
+    .icon-gradient-user { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .icon-gradient-key { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="fade-in">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- User Info -->
-        <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg border border-gray-700 p-6">
-            <h3 class="text-lg font-semibold text-gray-100 mb-4">Account Information</h3>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-sm font-medium text-gray-400">Username</label>
-                    <p class="mt-1 text-lg font-semibold text-gray-100">{{ session.username }}</p>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- User Info Card -->
+        <div class="modern-card rounded-3xl p-8 shadow-xl">
+            <div class="text-center mb-6">
+                <div class="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl relative overflow-hidden">
+                    <div class="absolute inset-0 shimmer"></div>
+                    <i class="fas fa-user text-white text-5xl relative z-10"></i>
+                    <div class="absolute -bottom-1 -right-1 w-8 h-8 bg-green-500 rounded-full border-4 border-white"></div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-400">Role</label>
-                    <p class="mt-1">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/50 text-blue-300 capitalize">
-                            {{ session.role }}
-                        </span>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">{{ session.username }}</h3>
+                <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 capitalize shadow-md">
+                    <i class="fas fa-crown mr-2 text-yellow-500"></i>
+                    {{ session.role }}
+                </span>
+            </div>
+
+            <div class="space-y-4 pt-6 border-t-2 border-gray-100">
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username</label>
+                    <p class="text-lg font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-user text-blue-600 mr-3"></i>
+                        {{ session.username }}
                     </p>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-400">User ID</label>
-                    <p class="mt-1 text-sm text-gray-100">#{{ session.user_id }}</p>
+                
+                <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-200">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Role</label>
+                    <p class="text-lg font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-shield-alt text-purple-600 mr-3"></i>
+                        <span class="capitalize">{{ session.role }}</span>
+                    </p>
+                </div>
+                
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">User ID</label>
+                    <p class="text-lg font-bold text-gray-800 flex items-center font-mono">
+                        <i class="fas fa-fingerprint text-green-600 mr-3"></i>
+                        #{{ session.user_id }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-200">
+                <div class="flex items-start">
+                    <div class="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center mr-3 flex-shrink-0">
+                        <i class="fas fa-lightbulb text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-800 mb-1">Security Tip</p>
+                        <p class="text-xs text-gray-600">Change your password regularly to keep your account secure</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Change Password -->
-        <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg border border-gray-700 p-6 lg:col-span-2">
-            <h3 class="text-lg font-semibold text-gray-100 mb-4">Change Password</h3>
+        <!-- Change Password Card -->
+        <div class="modern-card rounded-3xl p-8 shadow-xl lg:col-span-2">
+            <div class="flex items-center mb-8">
+                <div class="w-16 h-16 icon-gradient-key rounded-2xl flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-key text-white text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800">Change Password</h3>
+                    <p class="text-sm text-gray-500 mt-1">Update your account password</p>
+                </div>
+            </div>
+
             <form id="changePasswordForm">
-                <div class="space-y-4">
+                <div class="space-y-6">
                     <div>
-                        <label for="current_password" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="current_password" class="block text-sm font-bold text-gray-700 mb-3">
+                            <i class="fas fa-lock text-gray-600 mr-2"></i>
                             Current Password
                         </label>
-                        <input type="password" id="current_password" name="current_password" required
-                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100"
-                               placeholder="Enter current password">
+                        <div class="relative">
+                            <input type="password" id="current_password" name="current_password" required
+                                   class="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 font-medium transition-all"
+                                   placeholder="Enter current password">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                        </div>
                     </div>
 
                     <div>
-                        <label for="new_password" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="new_password" class="block text-sm font-bold text-gray-700 mb-3">
+                            <i class="fas fa-key text-blue-600 mr-2"></i>
                             New Password
                         </label>
-                        <input type="password" id="new_password" name="new_password" required
-                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100"
-                               placeholder="Enter new password" minlength="6">
-                        <p class="mt-1 text-xs text-gray-400">Password must be at least 6 characters long</p>
+                        <div class="relative">
+                            <input type="password" id="new_password" name="new_password" required
+                                   class="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 font-medium transition-all"
+                                   placeholder="Enter new password" minlength="6">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fas fa-key text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-start bg-blue-50 p-3 rounded-xl border border-blue-200">
+                            <i class="fas fa-info-circle text-blue-600 mr-2 mt-0.5"></i>
+                            <p class="text-xs text-blue-800 font-medium">
+                                Password must be at least 6 characters long. Use a combination of letters, numbers, and symbols for better security.
+                            </p>
+                        </div>
                     </div>
 
                     <div>
-                        <label for="confirm_password" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="confirm_password" class="block text-sm font-bold text-gray-700 mb-3">
+                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
                             Confirm New Password
                         </label>
-                        <input type="password" id="confirm_password" name="confirm_password" required
-                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100"
-                               placeholder="Confirm new password">
+                        <div class="relative">
+                            <input type="password" id="confirm_password" name="confirm_password" required
+                                   class="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 font-medium transition-all"
+                                   placeholder="Confirm new password">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fas fa-check-circle text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Strength Indicator -->
+                    <div id="passwordStrength" class="hidden">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-bold text-gray-700">Password Strength:</span>
+                            <span id="strengthText" class="text-sm font-bold"></span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div id="strengthBar" class="h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
                     </div>
 
                     <button type="submit" 
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
-                        <i class="fas fa-key"></i>
-                        <span>Change Password</span>
+                            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        <i class="fas fa-shield-alt text-xl"></i>
+                        <span>Update Password</span>
                     </button>
                 </div>
             </form>
+
+            <!-- Security Status -->
+            <div class="mt-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mr-4 shadow-md">
+                            <i class="fas fa-check-circle text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-800 text-lg">Account Security</p>
+                            <p class="text-sm text-gray-600">Your account is secure</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-gray-500 uppercase tracking-wider font-bold">Status</p>
+                        <p class="text-lg font-bold text-green-600">Active</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+</style>
 {% endblock %}
 
 {% block scripts %}
 <script>
+    // Password strength checker
+    document.getElementById('new_password').addEventListener('input', function(e) {
+        const password = e.target.value;
+        const strengthDiv = document.getElementById('passwordStrength');
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+        
+        if (password.length === 0) {
+            strengthDiv.classList.add('hidden');
+            return;
+        }
+        
+        strengthDiv.classList.remove('hidden');
+        
+        let strength = 0;
+        if (password.length >= 6) strength += 25;
+        if (password.length >= 10) strength += 25;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+        if (/\d/.test(password)) strength += 15;
+        if (/[^a-zA-Z0-9]/.test(password)) strength += 10;
+        
+        strengthBar.style.width = strength + '%';
+        
+        if (strength < 30) {
+            strengthBar.className = 'h-3 rounded-full transition-all duration-300 bg-red-500';
+            strengthText.textContent = 'Weak';
+            strengthText.className = 'text-sm font-bold text-red-600';
+        } else if (strength < 60) {
+            strengthBar.className = 'h-3 rounded-full transition-all duration-300 bg-yellow-500';
+            strengthText.textContent = 'Fair';
+            strengthText.className = 'text-sm font-bold text-yellow-600';
+        } else if (strength < 85) {
+            strengthBar.className = 'h-3 rounded-full transition-all duration-300 bg-blue-500';
+            strengthText.textContent = 'Good';
+            strengthText.className = 'text-sm font-bold text-blue-600';
+        } else {
+            strengthBar.className = 'h-3 rounded-full transition-all duration-300 bg-green-500';
+            strengthText.textContent = 'Strong';
+            strengthText.className = 'text-sm font-bold text-green-600';
+        }
+    });
+
     document.getElementById('changePasswordForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -95,6 +256,11 @@
             return;
         }
         
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i><span>Updating Password...</span>';
+        submitBtn.disabled = true;
+        
         try {
             const response = await fetch('/api/change-password', {
                 method: 'POST',
@@ -110,14 +276,18 @@
             const result = await response.json();
             
             if (result.success) {
-                showNotification('Password changed successfully', 'success');
+                showNotification('Password changed successfully!', 'success');
                 document.getElementById('changePasswordForm').reset();
+                document.getElementById('passwordStrength').classList.add('hidden');
             } else {
                 showNotification('Error: ' + result.error, 'error');
             }
         } catch (error) {
             showNotification('Failed to change password', 'error');
             console.error('Error:', error);
+        } finally {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
         }
     });
 </script>
