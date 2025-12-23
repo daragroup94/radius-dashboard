@@ -121,6 +121,36 @@ def convert_data_limit_to_bytes(data_limit_str):
         print(f"DEBUG: Error converting data limit: {str(e)}")
         return None
 
+# === NAS HEALTH MONITOR ===
+def ping_nas(ip_address):
+    """
+    Fungsi untuk mem-ping sebuah IP address dan mengembalikan statusnya.
+    Mengembalikan 'online', 'offline', atau 'error'.
+    """
+    try:
+        # -c 1: kirim 1 packet (Linux/macOS)
+        # -w 1: timeout 1 detik
+        # Untuk Windows, ganti dengan '-n 1'
+        output = subprocess.run(
+            ["ping", "-c", "1", "-w", "1", ip_address],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=2  # timeout untuk prosesnya sendiri
+        )
+
+        if output.returncode == 0:
+            return "online"
+        else:
+            return "offline"
+
+    except subprocess.TimeoutExpired:
+        return "offline"
+    except Exception as e:
+        print(f"Error pinging {ip_address}: {e}")
+        return "error"
+
+
 # === BACKGROUND CLEANUP THREAD ===
 def cleanup_stale_sessions():
     """Background task to clean up stale sessions"""
@@ -304,6 +334,37 @@ def api_delete_nas(nas_id):
         return jsonify({'success': True, 'message': 'NAS deleted successfully'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# === NAS HEALTH MONITOR API ROUTE ===
+@app.route('/api/nas/status', methods=['GET'])
+@login_required  # Menambahkan dekorator login_required untuk keamanan
+def get_nas_status():
+    """
+    API endpoint untuk mendapatkan status (online/offline) semua NAS.
+    Memerlukan autentikasi.
+    """
+    try:
+        # Ambil data NAS dari database menggunakan fungsi yang sudah ada
+        nas_list = execute_query("SELECT * FROM nas ORDER BY id")
+        
+        nas_status_list = []
+        for nas in nas_list:
+            status = ping_nas(nas['nasname'])
+            nas_status_list.append({
+                'id': nas['id'],
+                'nasname': nas['nasname'],
+                'shortname': nas['shortname'],
+                'status': status
+            })
+        
+        return jsonify({'success': True, 'nas_status': nas_status_list})
+
+    except Exception as e:
+        # Jika tabel 'nas' tidak ada, kembalikan array kosong
+        if 'relation "nas" does not exist' in str(e):
+            return jsonify({'success': True, 'nas_status': []})
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
 # === USER API ROUTES ===
 @app.route('/api/users')
