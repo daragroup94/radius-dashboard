@@ -2,952 +2,492 @@
 
 {% block title %}Dashboard - RADIUS Manager{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
-{% block page_subtitle %}Real-time RADIUS Statistics & Monitoring{% endblock %}
+{% block page_subtitle %}Real-time Network Monitoring & Analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card-modern {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .stat-card-modern:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .icon-gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .icon-gradient-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .icon-gradient-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .icon-gradient-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    .icon-gradient-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+    .icon-gradient-6 { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+    
+    .floating-icon { animation: float 3s ease-in-out infinite; }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .shimmer { position: relative; overflow: hidden; }
+    
+    .shimmer::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+        100% { left: 100%; }
+    }
+    
+    .activity-item-modern {
+        transition: all 0.3s ease;
+    }
+    
+    .activity-item-modern:hover {
+        transform: translateX(8px);
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="fade-in">
-    <!-- 🎨 STATS CARDS dengan Enhanced Gradient & Animasi -->
+    <!-- Modern Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- Total Users Card -->
-        <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-700 p-6 rounded-2xl shadow-2xl text-white transform hover:scale-105 transition-all duration-500 card-hover relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative z-10 flex items-center justify-between">
-                <div class="flex-1">
-                    <p class="text-sm font-semibold opacity-90 mb-2 uppercase tracking-wide">Total Users</p>
-                    <p id="totalUsers" class="text-5xl font-bold mb-2">0</p>
-                    <p class="text-xs opacity-80 flex items-center">
-                        <i class="fas fa-users mr-2"></i>
-                        <span id="activeUsers">0</span> Active PPPoE users
-                    </p>
+        <!-- Total Users -->
+        <div class="stat-card-modern rounded-3xl p-6 shadow-xl shimmer">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-16 h-16 icon-gradient-1 rounded-2xl flex items-center justify-center shadow-lg floating-icon">
+                    <i class="fas fa-users text-white text-2xl"></i>
                 </div>
-                <div class="bg-white bg-opacity-20 p-5 rounded-2xl backdrop-blur-sm">
-                    <i class="fas fa-users text-5xl"></i>
+                <div class="text-right">
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Users</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-1" id="totalUsers">0</p>
                 </div>
             </div>
-        </div>
-
-        <!-- Active Sessions Card -->
-        <div class="bg-gradient-to-br from-emerald-600 via-green-700 to-teal-700 p-6 rounded-2xl shadow-2xl text-white transform hover:scale-105 transition-all duration-500 card-hover relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative z-10 flex items-center justify-between">
-                <div class="flex-1">
-                    <p class="text-sm font-semibold opacity-90 mb-2 uppercase tracking-wide">Active Sessions</p>
-                    <p id="activeSessions" class="text-5xl font-bold mb-2">0</p>
-                    <p class="text-xs opacity-80 flex items-center">
-                        <i class="fas fa-wifi mr-2"></i>
-                        <span>All live connections</span>
-                    </p>
-                </div>
-                <div class="bg-white bg-opacity-20 p-5 rounded-2xl backdrop-blur-sm">
-                    <i class="fas fa-plug text-5xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Auth Attempts Card -->
-        <div class="bg-gradient-to-br from-purple-600 via-violet-700 to-fuchsia-700 p-6 rounded-2xl shadow-2xl text-white transform hover:scale-105 transition-all duration-500 card-hover relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative z-10 flex items-center justify-between">
-                <div class="flex-1">
-                    <p class="text-sm font-semibold opacity-90 mb-2 uppercase tracking-wide">Auth Attempts</p>
-                    <p id="authAttempts" class="text-5xl font-bold mb-2">0</p>
-                    <p class="text-xs opacity-80 flex items-center">
-                        <i class="fas fa-bolt mr-2"></i>
-                        <span>Today's authentication</span>
-                    </p>
-                </div>
-                <div class="bg-white bg-opacity-20 p-5 rounded-2xl backdrop-blur-sm">
-                    <i class="fas fa-chart-line text-5xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- NAS Devices Card -->
-        <div class="bg-gradient-to-br from-orange-600 via-amber-700 to-yellow-600 p-6 rounded-2xl shadow-2xl text-white transform hover:scale-105 transition-all duration-500 card-hover relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative z-10 flex items-center justify-between">
-                <div class="flex-1">
-                    <p class="text-sm font-semibold opacity-90 mb-2 uppercase tracking-wide">NAS Devices</p>
-                    <p id="nasDevices" class="text-5xl font-bold mb-2">0</p>
-                    <p class="text-xs opacity-80 flex items-center">
-                        <i class="fas fa-network-wired mr-2"></i>
-                        <span>Network devices</span>
-                    </p>
-                </div>
-                <div class="bg-white bg-opacity-20 p-5 rounded-2xl backdrop-blur-sm">
-                    <i class="fas fa-server text-5xl"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 📊 MAIN CONTENT ROW -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <!-- Quick Actions - Enhanced -->
-        <div class="glass-effect rounded-2xl shadow-2xl p-6">
-            <h3 class="text-lg font-bold text-gray-100 mb-6 flex items-center">
-                <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                    <i class="fas fa-bolt text-white"></i>
-                </div>
-                Quick Actions
-            </h3>
-            <div class="grid grid-cols-2 gap-4">
-                <a href="/nas" class="group block">
-                    <div class="bg-gradient-to-br from-indigo-900/40 to-blue-900/40 p-5 rounded-2xl text-center hover:shadow-2xl transition-all duration-500 transform hover:scale-105 border border-indigo-800/30 hover:border-indigo-600/50">
-                        <div class="bg-gradient-to-br from-indigo-600 to-blue-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-500 shadow-xl">
-                            <i class="fas fa-plus text-2xl"></i>
-                        </div>
-                        <p class="text-sm font-bold text-gray-100 mb-1">Add NAS</p>
-                        <p class="text-xs text-gray-400">Network device</p>
-                    </div>
-                </a>
-
-                <a href="/users" class="group block">
-                    <div class="bg-gradient-to-br from-emerald-900/40 to-green-900/40 p-5 rounded-2xl text-center hover:shadow-2xl transition-all duration-500 transform hover:scale-105 border border-emerald-800/30 hover:border-emerald-600/50">
-                        <div class="bg-gradient-to-br from-emerald-600 to-green-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-500 shadow-xl">
-                            <i class="fas fa-user-plus text-2xl"></i>
-                        </div>
-                        <p class="text-sm font-bold text-gray-100 mb-1">Add User</p>
-                        <p class="text-xs text-gray-400">PPPoE account</p>
-                    </div>
-                </a>
-
-                <a href="/sessions" class="group block">
-                    <div class="bg-gradient-to-br from-purple-900/40 to-violet-900/40 p-5 rounded-2xl text-center hover:shadow-2xl transition-all duration-500 transform hover:scale-105 border border-purple-800/30 hover:border-purple-600/50">
-                        <div class="bg-gradient-to-br from-purple-600 to-violet-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-500 shadow-xl">
-                            <i class="fas fa-eye text-2xl"></i>
-                        </div>
-                        <p class="text-sm font-bold text-gray-100 mb-1">Sessions</p>
-                        <p class="text-xs text-gray-400">Live connections</p>
-                    </div>
-                </a>
-
-                <a href="/logs" class="group block">
-                    <div class="bg-gradient-to-br from-amber-900/40 to-orange-900/40 p-5 rounded-2xl text-center hover:shadow-2xl transition-all duration-500 transform hover:scale-105 border border-amber-800/30 hover:border-amber-600/50">
-                        <div class="bg-gradient-to-br from-amber-600 to-orange-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-500 shadow-xl">
-                            <i class="fas fa-file-alt text-2xl"></i>
-                        </div>
-                        <p class="text-sm font-bold text-gray-100 mb-1">Auth Logs</p>
-                        <p class="text-xs text-gray-400">Authentication logs</p>
-                    </div>
-                </a>
-            </div>
-        </div>
-
-        <!-- System Status - Enhanced -->
-        <div class="glass-effect rounded-2xl shadow-2xl p-6">
-            <h3 class="text-lg font-bold text-gray-100 mb-6 flex items-center">
-                <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                    <i class="fas fa-server text-white"></i>
-                </div>
-                System Status
-            </h3>
-            <div class="space-y-4">
-                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-900/40 to-green-900/30 rounded-2xl border border-emerald-800/40 backdrop-blur-sm">
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 bg-emerald-500 rounded-full mr-3 animate-pulse shadow-lg shadow-emerald-500/50"></div>
-                        <span class="text-sm font-semibold text-gray-100">Database</span>
-                    </div>
-                    <span class="text-xs font-bold text-emerald-400 px-4 py-1.5 bg-emerald-900/60 rounded-full border border-emerald-700/50">Operational</span>
-                </div>
-                
-                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-900/40 to-green-900/30 rounded-2xl border border-emerald-800/40 backdrop-blur-sm">
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 bg-emerald-500 rounded-full mr-3 animate-pulse shadow-lg shadow-emerald-500/50"></div>
-                        <span class="text-sm font-semibold text-gray-100">RADIUS Service</span>
-                    </div>
-                    <span class="text-xs font-bold text-emerald-400 px-4 py-1.5 bg-emerald-900/60 rounded-full border border-emerald-700/50">Running</span>
-                </div>
-                
-                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-900/40 to-green-900/30 rounded-2xl border border-emerald-800/40 backdrop-blur-sm">
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 bg-emerald-500 rounded-full mr-3 animate-pulse shadow-lg shadow-emerald-500/50"></div>
-                        <span class="text-sm font-semibold text-gray-100">Web Interface</span>
-                    </div>
-                    <span class="text-xs font-bold text-emerald-400 px-4 py-1.5 bg-emerald-900/60 rounded-full border border-emerald-700/50">Online</span>
-                </div>
-                
-                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-900/30 to-blue-900/20 rounded-2xl mt-4 border-t border-gray-800/50 pt-4">
-                    <div class="flex items-center">
-                        <i class="fas fa-clock text-indigo-400 mr-3 text-lg"></i>
-                        <span class="text-sm font-semibold text-gray-100">Last Update</span>
-                    </div>
-                    <span class="text-xs text-gray-400 font-medium" id="lastUpdate">Just now</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 📈 CHARTS ROW -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <!-- Authentication Activity Chart -->
-        <div class="glass-effect rounded-2xl shadow-2xl p-6">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-100 flex items-center">
-                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                            <i class="fas fa-chart-area text-white"></i>
-                        </div>
-                        Authentication Activity
-                    </h3>
-                    <p class="text-sm text-gray-500 mt-1 ml-13">Last 30 minutes</p>
-                </div>
-                <button onclick="refreshActivityChart()" class="p-2.5 text-gray-400 hover:text-indigo-400 transition-all duration-300 hover:bg-gray-700/50 rounded-xl hover:rotate-180">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-            </div>
-            <div class="relative" style="height: 200px;">
-                <canvas id="authActivityChart"></canvas>
-                <div id="authActivityLoading" class="absolute inset-0 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm rounded-xl">
-                    <i class="fas fa-spinner fa-spin text-indigo-400 text-3xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sessions Distribution Chart -->
-        <div class="glass-effect rounded-2xl shadow-2xl p-6">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-100 flex items-center">
-                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                            <i class="fas fa-chart-pie text-white"></i>
-                        </div>
-                        Sessions by NAS
-                    </h3>
-                    <p class="text-sm text-gray-500 mt-1 ml-13">Current distribution</p>
-                </div>
-                <button onclick="refreshSessionsChart()" class="p-2.5 text-gray-400 hover:text-indigo-400 transition-all duration-300 hover:bg-gray-700/50 rounded-xl hover:rotate-180">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-            </div>
-            <div class="relative" style="height: 200px;">
-                <canvas id="sessionsPieChart"></canvas>
-                <div id="sessionsPieLoading" class="absolute inset-0 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm rounded-xl">
-                    <i class="fas fa-spinner fa-spin text-indigo-400 text-3xl"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 📋 RECENT ACTIVITY & PERFORMANCE -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Recent Activity -->
-        <div class="glass-effect rounded-2xl shadow-2xl p-6">
-            <h3 class="text-lg font-bold text-gray-100 mb-6 flex items-center justify-between">
-                <span class="flex items-center">
-                    <div class="w-10 h-10 bg-gradient-to-br from-gray-600 to-gray-700 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                        <i class="fas fa-history text-white"></i>
-                    </div>
-                    Recent Activity
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full">
+                    <i class="fas fa-arrow-up mr-1"></i>Active
                 </span>
-                <span class="text-xs text-gray-500 font-medium">Last 30 minutes</span>
-            </h3>
-            <div class="space-y-3" id="recentActivityList">
-                <div class="flex items-center p-4 bg-gray-800/50 rounded-xl shimmer">
-                    <div class="w-2 h-2 bg-gray-600 rounded-full mr-3"></div>
+                <span class="text-xs text-gray-500" id="activeUsers">PPPoE users</span>
+            </div>
+        </div>
+
+        <!-- Active Sessions -->
+        <div class="stat-card-modern rounded-3xl p-6 shadow-xl shimmer">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-16 h-16 icon-gradient-2 rounded-2xl flex items-center justify-center shadow-lg floating-icon" style="animation-delay: 0.5s">
+                    <i class="fas fa-signal text-white text-2xl"></i>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Live Sessions</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-1" id="activeSessions">0</p>
+                </div>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full">
+                    <i class="fas fa-wifi mr-1"></i>Online
+                </span>
+                <span class="text-xs text-gray-500">connections</span>
+            </div>
+        </div>
+
+        <!-- Auth Attempts -->
+        <div class="stat-card-modern rounded-3xl p-6 shadow-xl shimmer">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-16 h-16 icon-gradient-3 rounded-2xl flex items-center justify-center shadow-lg floating-icon" style="animation-delay: 1s">
+                    <i class="fas fa-key text-white text-2xl"></i>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Auth Today</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-1" id="authAttempts">0</p>
+                </div>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+                    <i class="fas fa-check mr-1"></i>Success
+                </span>
+                <span class="text-xs text-gray-500">authentication</span>
+            </div>
+        </div>
+
+        <!-- NAS Devices -->
+        <div class="stat-card-modern rounded-3xl p-6 shadow-xl shimmer">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-16 h-16 icon-gradient-4 rounded-2xl flex items-center justify-center shadow-lg floating-icon" style="animation-delay: 1.5s">
+                    <i class="fas fa-server text-white text-2xl"></i>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">NAS Devices</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-1" id="nasDevices">0</p>
+                </div>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full">
+                    <i class="fas fa-check-circle mr-1"></i>Online
+                </span>
+                <span class="text-xs text-gray-500">network devices</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Authentication Activity Chart -->
+        <div class="modern-card p-6 rounded-3xl">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 icon-gradient-5 rounded-xl flex items-center justify-center mr-3 shadow-md">
+                        <i class="fas fa-chart-line text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">Authentication Activity</h3>
+                        <p class="text-sm text-gray-500">Last 24 hours</p>
+                    </div>
+                </div>
+                <button onclick="refreshActivityChart()" class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-xl transition-all duration-200">
+                    <i class="fas fa-sync-alt text-gray-600"></i>
+                </button>
+            </div>
+            <div id="authActivityChart" style="height: 320px;"></div>
+        </div>
+
+        <!-- Sessions Distribution -->
+        <div class="modern-card p-6 rounded-3xl">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 icon-gradient-6 rounded-xl flex items-center justify-center mr-3 shadow-md">
+                        <i class="fas fa-chart-pie text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">Sessions by NAS</h3>
+                        <p class="text-sm text-gray-500">Current distribution</p>
+                    </div>
+                </div>
+                <button onclick="refreshSessionsChart()" class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-xl transition-all duration-200">
+                    <i class="fas fa-sync-alt text-gray-600"></i>
+                </button>
+            </div>
+            <div id="sessionsPieChart" style="height: 320px;"></div>
+        </div>
+    </div>
+
+    <!-- Recent Activity & Performance -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Recent Activity -->
+        <div class="modern-card p-6 rounded-3xl">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 icon-gradient-1 rounded-xl flex items-center justify-center mr-3 shadow-md">
+                    <i class="fas fa-history text-white"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">Recent Activity</h3>
+                    <p class="text-sm text-gray-500">Last 30 minutes</p>
+                </div>
+            </div>
+            <div class="space-y-3 max-h-80 overflow-y-auto" id="recentActivityList">
+                <div class="flex items-center p-4 bg-gray-50 rounded-xl">
+                    <div class="w-2 h-2 bg-gray-400 rounded-full mr-3 animate-pulse"></div>
                     <span class="text-sm text-gray-500">Loading activity...</span>
                 </div>
             </div>
         </div>
 
-        <!-- Performance Metrics -->
-        <div class="glass-effect rounded-2xl shadow-2xl p-6">
-            <h3 class="text-lg font-bold text-gray-100 mb-6 flex items-center">
-                <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+        <!-- System Performance -->
+        <div class="modern-card p-6 rounded-3xl">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 icon-gradient-3 rounded-xl flex items-center justify-center mr-3 shadow-md">
                     <i class="fas fa-tachometer-alt text-white"></i>
                 </div>
-                Performance Metrics
-            </h3>
-            <div class="space-y-5">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">System Performance</h3>
+                    <p class="text-sm text-gray-500">Real-time metrics</p>
+                </div>
+            </div>
+            <div class="space-y-6">
                 <div data-metric="cpu">
-                    <div class="flex justify-between text-sm mb-2.5">
-                        <span class="text-gray-400 font-medium">System Load</span>
-                        <span class="font-bold text-gray-100 metric-value">14%</span>
+                    <div class="flex justify-between mb-3">
+                        <span class="text-sm font-semibold text-gray-700">CPU Usage</span>
+                        <span class="text-sm font-bold text-gray-800 metric-value">0%</span>
                     </div>
-                    <div class="w-full bg-gray-800 rounded-full h-2.5 overflow-hidden">
-                        <div class="bg-gradient-to-r from-emerald-500 to-green-600 h-2.5 rounded-full transition-all duration-1000 metric-bar shadow-lg shadow-emerald-500/30" style="width: 14%"></div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div class="h-3 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-1000 metric-bar" style="width: 0%"></div>
                     </div>
                 </div>
                 
                 <div data-metric="memory">
-                    <div class="flex justify-between text-sm mb-2.5">
-                        <span class="text-gray-400 font-medium">Memory Usage</span>
-                        <span class="font-bold text-gray-100 metric-value">64%</span>
+                    <div class="flex justify-between mb-3">
+                        <span class="text-sm font-semibold text-gray-700">Memory Usage</span>
+                        <span class="text-sm font-bold text-gray-800 metric-value">0%</span>
                     </div>
-                    <div class="w-full bg-gray-800 rounded-full h-2.5 overflow-hidden">
-                        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full transition-all duration-1000 metric-bar shadow-lg shadow-blue-500/30" style="width: 64%"></div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div class="h-3 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500 transition-all duration-1000 metric-bar" style="width: 0%"></div>
                     </div>
                 </div>
                 
                 <div data-metric="db">
-                    <div class="flex justify-between text-sm mb-2.5">
-                        <span class="text-gray-400 font-medium">Database Connections</span>
-                        <span class="font-bold text-gray-100 metric-value">6 / 100</span>
+                    <div class="flex justify-between mb-3">
+                        <span class="text-sm font-semibold text-gray-700">Database Connections</span>
+                        <span class="text-sm font-bold text-gray-800 metric-value">0 / 100</span>
                     </div>
-                    <div class="w-full bg-gray-800 rounded-full h-2.5 overflow-hidden">
-                        <div class="bg-gradient-to-r from-purple-500 to-violet-600 h-2.5 rounded-full transition-all duration-1000 metric-bar shadow-lg shadow-purple-500/30" style="width: 6%"></div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div class="h-3 rounded-full bg-gradient-to-r from-purple-400 to-violet-500 transition-all duration-1000 metric-bar" style="width: 0%"></div>
                     </div>
                 </div>
                 
                 <div data-metric="disk">
-                    <div class="flex justify-between text-sm mb-2.5">
-                        <span class="text-gray-400 font-medium">Disk Usage</span>
-                        <span class="font-bold text-gray-100 metric-value">45%</span>
+                    <div class="flex justify-between mb-3">
+                        <span class="text-sm font-semibold text-gray-700">Network Bandwidth</span>
+                        <span class="text-sm font-bold text-gray-800 metric-value">0%</span>
                     </div>
-                    <div class="w-full bg-gray-800 rounded-full h-2.5 overflow-hidden">
-                        <div class="bg-gradient-to-r from-cyan-500 to-blue-600 h-2.5 rounded-full transition-all duration-1000 metric-bar shadow-lg shadow-cyan-500/30" style="width: 45%"></div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div class="h-3 rounded-full bg-gradient-to-r from-pink-400 to-rose-500 transition-all duration-1000 metric-bar" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Notification Container -->
-<div id="notificationContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Global variables
+// Script tetap sama seperti sebelumnya, hanya update style chart saja
 let authActivityChart = null;
 let sessionsPieChart = null;
-let isRefreshing = false;
-let refreshInterval = null;
 
-// Safe element selector dengan error handling
-function safeGetElement(id) {
-    const element = document.getElementById(id);
-    if (!element) {
-        console.warn(`Element with id '${id}' not found`);
+async function loadStats() {
+    try {
+        const data = await apiCall('/api/stats');
+        document.getElementById('totalUsers').textContent = data.total_users || 0;
+        document.getElementById('activeSessions').textContent = data.active_sessions || 0;
+        document.getElementById('authAttempts').textContent = data.today_auth || 0;
+        document.getElementById('nasDevices').textContent = data.total_nas || 0;
+    } catch (error) {
+        console.error('Error loading stats:', error);
     }
-    return element;
 }
 
-// Notification system
-function showNotification(message, type = 'info') {
-    const notificationContainer = safeGetElement('notificationContainer');
-    if (!notificationContainer) return;
-    
-    const notification = document.createElement('div');
-    notification.className = `p-4 rounded-2xl shadow-2xl mb-2 transform transition-all duration-300 translate-x-full backdrop-blur-md border`;
-    
-    // Set color based on type
-    switch(type) {
-        case 'success':
-            notification.classList.add('bg-gradient-to-r', 'from-green-600', 'to-emerald-700', 'text-white', 'border-green-500/50');
-            break;
-        case 'error':
-            notification.classList.add('bg-gradient-to-r', 'from-red-600', 'to-rose-700', 'text-white', 'border-red-500/50');
-            break;
-        case 'warning':
-            notification.classList.add('bg-gradient-to-r', 'from-yellow-600', 'to-amber-700', 'text-white', 'border-yellow-500/50');
-            break;
-        default:
-            notification.classList.add('bg-gradient-to-r', 'from-blue-600', 'to-indigo-700', 'text-white', 'border-blue-500/50');
-    }
-    
-    notification.innerHTML = `
-        <div class="flex items-center">
-            <div class="flex-1 font-medium">${message}</div>
-            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 p-2 hover:bg-white/10 rounded-lg transition-all">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-    
-    notificationContainer.appendChild(notification);
-    
-    // Animate in
-    setTimeout(() => {
-        notification.classList.remove('translate-x-full');
-    }, 10);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.classList.add('translate-x-full');
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 300);
-        }
-    }, 5000);
-}
-
-// Load dashboard stats
-function loadStats() {
-    fetch('/api/stats')
-        .then(res => {
-            if (!res.ok) throw new Error('Network response was not ok');
-            return res.json();
-        })
-        .then(data => {
-            const totalUsersEl = safeGetElement('totalUsers');
-            const activeSessionsEl = safeGetElement('activeSessions');
-            const authAttemptsEl = safeGetElement('authAttempts');
-            const nasDevicesEl = safeGetElement('nasDevices');
-            
-            if (totalUsersEl) totalUsersEl.textContent = data.total_users || 0;
-            if (activeSessionsEl) activeSessionsEl.textContent = data.active_sessions || 0;
-            if (authAttemptsEl) authAttemptsEl.textContent = data.today_auth || 0;
-            if (nasDevicesEl) nasDevicesEl.textContent = data.total_nas || 0;
-        })
-        .catch(err => {
-            console.error('Error loading stats:', err);
-            showNotification('Failed to load dashboard statistics', 'error');
-        });
-}
-
-// Create Auth Activity Chart dengan error handling yang lebih baik
-function createAuthActivityChart() {
-    const ctx = safeGetElement('authActivityChart');
-    const loadingElement = safeGetElement('authActivityLoading');
-    
-    if (!ctx) {
-        console.error('Auth activity chart canvas not found');
-        return;
-    }
-    
-    // Show loading
-    if (loadingElement) {
-        loadingElement.style.display = 'flex';
-    }
-    
-    fetch('/api/auth-activity')
-        .then(res => {
-            if (!res.ok) throw new Error('Network response was not ok');
-            return res.json();
-        })
-        .then(result => {
-            // Hide loading
-            if (loadingElement) {
-                loadingElement.style.display = 'none';
-            }
-            
-            // Check if we have data
-            if (!result.labels || !result.data || result.labels.length === 0) {
-                // Show no data message
-                const parent = ctx.parentElement;
-                if (parent) {
-                    parent.innerHTML = `
-                        <div class="flex items-center justify-center h-full">
-                            <div class="text-center">
-                                <i class="fas fa-chart-area text-gray-700 text-5xl mb-4"></i>
-                                <p class="text-gray-500 font-medium">No authentication activity in the last 30 minutes</p>
-                            </div>
-                        </div>
-                    `;
-                }
-                return;
-            }
-            
-            // Destroy existing chart
-            if (authActivityChart) {
-                authActivityChart.destroy();
-            }
-            
-            const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.6)');
-            gradient.addColorStop(1, 'rgba(139, 92, 246, 0.05)');
-            
-            authActivityChart = new Chart(ctx, {
+async function createAuthActivityChart() {
+    try {
+        const response = await fetch('/api/auth-activity');
+        const result = await response.json();
+        
+        const chartDom = document.getElementById('authActivityChart');
+        if (authActivityChart) authActivityChart.dispose();
+        authActivityChart = echarts.init(chartDom);
+        
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderColor: '#e0e0e0',
+                borderWidth: 1,
+                textStyle: { color: '#333', fontSize: 14 },
+                extraCssText: 'box-shadow: 0 8px 16px rgba(0,0,0,0.1); border-radius: 12px; padding: 12px;'
+            },
+            grid: { left: '3%', right: '4%', bottom: '3%', top: '10%', containLabel: true },
+            xAxis: {
+                type: 'category',
+                data: result.labels || [],
+                axisLine: { lineStyle: { color: '#e0e0e0' } },
+                axisLabel: { color: '#666', fontSize: 12, fontWeight: 500 }
+            },
+            yAxis: {
+                type: 'value',
+                axisLine: { show: false },
+                axisTick: { show: false },
+                axisLabel: { color: '#666', fontSize: 12 },
+                splitLine: { lineStyle: { color: '#f0f0f0', type: 'dashed' } }
+            },
+            series: [{
+                name: 'Auth Attempts',
                 type: 'line',
-                data: {
-                    labels: result.labels,
-                    datasets: [{
-                        label: 'Auth Attempts',
-                        data: result.data,
-                        borderColor: '#8b5cf6',
-                        backgroundColor: gradient,
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 0,
-                        pointHoverRadius: 8,
-                        pointBackgroundColor: '#8b5cf6',
-                        pointBorderColor: '#1f2937',
-                        pointBorderWidth: 3,
-                        pointHoverBackgroundColor: '#a855f7',
-                        pointHoverBorderWidth: 4
-                    }]
+                smooth: true,
+                symbol: 'circle',
+                symbolSize: 8,
+                lineStyle: { width: 4 },
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                        { offset: 0, color: '#667eea' },
+                        { offset: 1, color: '#764ba2' }
+                    ])
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(17, 24, 39, 0.95)',
-                            titleColor: '#f3f4f6',
-                            bodyColor: '#f3f4f6',
-                            padding: 14,
-                            displayColors: false,
-                            titleFont: { size: 14, weight: 'bold' },
-                            bodyFont: { size: 13 },
-                            cornerRadius: 10,
-                            borderColor: 'rgba(139, 92, 246, 0.5)',
-                            borderWidth: 1,
-                            callbacks: {
-                                title: function(context) {
-                                    return 'Authentication Attempts';
-                                },
-                                label: function(context) {
-                                    return `Attempts: ${context.parsed.y}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(55, 65, 81, 0.4)' },
-                            ticks: { color: '#9ca3af', font: { size: 12, weight: '500' } },
-                            title: {
-                                display: true,
-                                text: 'Attempts',
-                                color: '#9ca3af',
-                                font: { size: 11, weight: 'bold' }
-                            }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { 
-                                color: '#9ca3af',
-                                maxTicksLimit: 6,
-                                font: { size: 12, weight: '500' }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Time',
-                                color: '#9ca3af',
-                                font: { size: 11, weight: 'bold' }
-                            }
-                        }
-                    },
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    }
-                }
-            });
-        })
-        .catch(err => {
-            console.error('Error loading auth activity:', err);
-            if (loadingElement) {
-                loadingElement.style.display = 'none';
-            }
-            showNotification('Failed to load authentication activity data', 'error');
-        });
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(102, 126, 234, 0.4)' },
+                        { offset: 1, color: 'rgba(118, 75, 162, 0.1)' }
+                    ])
+                },
+                data: result.data || []
+            }]
+        };
+        
+        authActivityChart.setOption(option);
+    } catch (error) {
+        console.error('Error loading auth activity:', error);
+    }
 }
 
-// Create Sessions Pie Chart dengan error handling yang lebih baik
-function createSessionsPieChart() {
-    const ctx = safeGetElement('sessionsPieChart');
-    const loadingElement = safeGetElement('sessionsPieLoading');
-    
-    if (!ctx) {
-        console.error('Sessions pie chart canvas not found');
-        return;
-    }
-    
-    // Show loading
-    if (loadingElement) {
-        loadingElement.style.display = 'flex';
-    }
-    
-    fetch('/api/sessions-by-nas')
-        .then(res => {
-            if (!res.ok) throw new Error('Network response was not ok');
-            return res.json();
-        })
-        .then(result => {
-            // Hide loading
-            if (loadingElement) {
-                loadingElement.style.display = 'none';
-            }
-            
-            // Check if we have data
-            if (!result.labels || !result.data || result.labels.length === 0) {
-                // Show no data message
-                const parent = ctx.parentElement;
-                if (parent) {
-                    parent.innerHTML = `
-                        <div class="flex items-center justify-center h-full">
-                            <div class="text-center">
-                                <i class="fas fa-chart-pie text-gray-700 text-5xl mb-4"></i>
-                                <p class="text-gray-500 font-medium">No active sessions</p>
-                            </div>
-                        </div>
-                    `;
-                }
-                return;
-            }
-            
-            // Destroy existing chart
-            if (sessionsPieChart) {
-                sessionsPieChart.destroy();
-            }
-            
-            // Generate colors dynamically if needed
-            const colors = [
-                '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', 
-                '#ef4444', '#06b6d4', '#f97316', '#84cc16'
-            ];
-            
-            sessionsPieChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: result.labels,
-                    datasets: [{
-                        data: result.data,
-                        backgroundColor: colors.slice(0, result.labels.length),
-                        borderWidth: 3,
-                        borderColor: '#111827',
-                        hoverOffset: 15,
-                        hoverBorderWidth: 4
-                    }]
+async function createSessionsPieChart() {
+    try {
+        const response = await fetch('/api/sessions-by-nas');
+        const result = await response.json();
+        
+        const chartDom = document.getElementById('sessionsPieChart');
+        if (sessionsPieChart) sessionsPieChart.dispose();
+        sessionsPieChart = echarts.init(chartDom);
+        
+        const data = (result.labels || []).map((label, index) => ({
+            name: label,
+            value: (result.data || [])[index] || 0
+        }));
+        
+        const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#30cfd0'];
+        
+        const option = {
+            color: colors,
+            tooltip: {
+                trigger: 'item',
+                formatter: '{b}: {c} ({d}%)',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderColor: '#e0e0e0',
+                borderWidth: 1,
+                textStyle: { color: '#333', fontSize: 14 },
+                extraCssText: 'box-shadow: 0 8px 16px rgba(0,0,0,0.1); border-radius: 12px;'
+            },
+            legend: {
+                bottom: '5%',
+                left: 'center',
+                textStyle: { color: '#666', fontSize: 13, fontWeight: 500 }
+            },
+            series: [{
+                name: 'Sessions',
+                type: 'pie',
+                radius: ['50%', '75%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 12,
+                    borderColor: '#fff',
+                    borderWidth: 4
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#9ca3af',
-                                padding: 15,
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                font: { size: 13, weight: '500' }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(17, 24, 39, 0.95)',
-                            titleColor: '#f3f4f6',
-                            bodyColor: '#f3f4f6',
-                            padding: 14,
-                            cornerRadius: 10,
-                            titleFont: { size: 14, weight: 'bold' },
-                            bodyFont: { size: 13 },
-                            borderColor: 'rgba(99, 102, 241, 0.5)',
-                            borderWidth: 1,
-                            callbacks: {
-                                label: function(context) {
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
-                                    return context.label + ': ' + context.parsed + ' sessions (' + percentage + '%)';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        })
-        .catch(err => {
-            console.error('Error loading sessions distribution:', err);
-            if (loadingElement) {
-                loadingElement.style.display = 'none';
-            }
-            showNotification('Failed to load sessions distribution data', 'error');
-        });
+                label: { show: false },
+                emphasis: {
+                    label: { show: true, fontSize: 20, fontWeight: 'bold' }
+                },
+                labelLine: { show: false },
+                data: data
+            }]
+        };
+        
+        sessionsPieChart.setOption(option);
+    } catch (error) {
+        console.error('Error loading sessions distribution:', error);
+    }
 }
 
-// Load Recent Activity dengan error handling
-function loadRecentActivity() {
-    const activityList = safeGetElement('recentActivityList');
-    if (!activityList) return;
-    
-    // Show loading
-    activityList.innerHTML = `
-        <div class="flex items-center p-4 bg-gray-800/50 rounded-xl shimmer">
-            <div class="w-2 h-2 bg-gray-600 rounded-full mr-3"></div>
-            <span class="text-sm text-gray-500">Loading activity...</span>
-        </div>
-    `;
-    
-    fetch('/api/recent-activity')
-        .then(res => {
-            if (!res.ok) throw new Error('Network response was not ok');
-            return res.json();
-        })
-        .then(activities => {
-            if (!activities || activities.length === 0) {
-                activityList.innerHTML = `
-                    <div class="flex items-center p-4 bg-gray-800/50 rounded-xl">
-                        <div class="w-2 h-2 bg-gray-600 rounded-full mr-3"></div>
-                        <span class="text-sm text-gray-500">No recent activity</span>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '';
-            activities.forEach(activity => {
-                const bgColor = activity.color === 'green' ? 'bg-gradient-to-r from-emerald-900/40 to-green-900/30' : 'bg-gradient-to-r from-red-900/40 to-rose-900/30';
-                const borderColor = activity.color === 'green' ? 'border-emerald-800/50' : 'border-red-800/50';
-                const iconColor = activity.color === 'green' ? 'text-emerald-400' : 'text-red-400';
-                const dotColor = activity.color === 'green' ? 'bg-emerald-500' : 'bg-red-500';
-
-                html += `
-                    <div class="flex items-center p-4 ${bgColor} rounded-2xl hover:bg-gray-700/50 transition-all duration-300 cursor-pointer border ${borderColor} backdrop-blur-sm group" 
-                         onclick="showActivityDetails('${activity.username}', '${activity.reply}', '${activity.calledstationid}', '${activity.callingstationid}')">
-                        <div class="w-2.5 h-2.5 ${dotColor} rounded-full mr-3 animate-pulse shadow-lg"></div>
-                        <div class="flex-1">
-                            <p class="text-sm font-semibold text-gray-100 group-hover:text-white transition-colors">${activity.text}</p>
-                            <p class="text-xs text-gray-500 mt-1 font-medium">${activity.time}</p>
-                        </div>
-                        <i class="fas ${activity.icon} ${iconColor} text-lg group-hover:scale-110 transition-transform"></i>
-                    </div>
-                `;
-            });
-            
-            activityList.innerHTML = html;
-        })
-        .catch(err => {
-            console.error('Error loading recent activity:', err);
-            activityList.innerHTML = `
-                <div class="flex items-center p-4 bg-red-900/30 rounded-2xl border border-red-800/50">
-                    <div class="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
-                    <span class="text-sm text-red-400 font-medium">Error loading activity</span>
+async function loadRecentActivity() {
+    try {
+        const activities = await apiCall('/api/recent-activity');
+        const activityList = document.getElementById('recentActivityList');
+        
+        if (!activities || activities.length === 0) {
+            activityList.innerHTML = '<div class="text-center py-8 text-gray-500 text-sm">No recent activity</div>';
+            return;
+        }
+        
+        activityList.innerHTML = activities.map(activity => {
+            const colors = {
+                green: 'from-green-50 to-emerald-50 border-green-200',
+                red: 'from-red-50 to-rose-50 border-red-200',
+                blue: 'from-blue-50 to-indigo-50 border-blue-200',
+                purple: 'from-purple-50 to-violet-50 border-purple-200'
+            };
+            const iconBg = {
+                green: 'bg-green-500',
+                red: 'bg-red-500',
+                blue: 'bg-blue-500',
+                purple: 'bg-purple-500'
+            };
+            return `
+            <div class="activity-item-modern flex items-center p-4 bg-gradient-to-r ${colors[activity.color] || colors.blue} rounded-xl border">
+                <div class="w-12 h-12 ${iconBg[activity.color] || iconBg.blue} rounded-xl flex items-center justify-center mr-4 shadow-md">
+                    <i class="fas ${activity.icon} text-white"></i>
                 </div>
-            `;
-            showNotification('Failed to load recent activity', 'error');
-        });
-}
-
-// Load Performance Metrics dengan error handling
-function loadPerformanceMetrics() {
-    fetch('/api/system-metrics')
-        .then(res => {
-            if (!res.ok) throw new Error('Network response was not ok');
-            return res.json();
-        })
-        .then(metrics => {
-            // Update CPU
-            const cpuElement = document.querySelector('[data-metric="cpu"]');
-            if (cpuElement) {
-                const valueElement = cpuElement.querySelector('.metric-value');
-                const barElement = cpuElement.querySelector('.metric-bar');
-                if (valueElement && barElement) {
-                    valueElement.textContent = `${metrics.cpu_percent}%`;
-                    barElement.style.width = `${metrics.cpu_percent}%`;
-                    
-                    if (metrics.cpu_percent > 80) {
-                        barElement.className = 'bg-gradient-to-r from-red-500 to-rose-600 h-2.5 rounded-full transition-all duration-1000 metric-bar shadow-lg shadow-red-500/30';
-                    } else if (metrics.cpu_percent > 60) {
-                        barElement.className = 'bg-gradient-to-r from-yellow-500 to-amber-600 h-2.5 rounded-full transition-all duration-1000 metric-bar shadow-lg shadow-yellow-500/30';
-                    } else {
-                        barElement.className = 'bg-gradient-to-r from-emerald-500 to-green-600 h-2.5 rounded-full transition-all duration-1000 metric-bar shadow-lg shadow-emerald-500/30';
-                    }
-                }
-            }
-            
-            // Update Memory
-            const memoryElement = document.querySelector('[data-metric="memory"]');
-            if (memoryElement) {
-                const valueElement = memoryElement.querySelector('.metric-value');
-                const barElement = memoryElement.querySelector('.metric-bar');
-                if (valueElement && barElement) {
-                    valueElement.textContent = `${metrics.memory_percent}%`;
-                    barElement.style.width = `${metrics.memory_percent}%`;
-                    
-                    if (metrics.memory_percent > 80) {
-                        barElement.className = 'bg-gradient-to-r from-red-500 to-rose-600 h-2.5 rounded-full transition-all duration-1000 metric-bar shadow-lg shadow-red-500/30';
-                    } else if (metrics.memory_percent > 60) {
-                        barElement.className = 'bg-gradient-to-r from-yellow-500 to-amber-600 h-2.5 rounded-full transition-all duration-1000 metric-bar shadow-lg shadow-yellow-500/30';
-                    } else {
-                        barElement.className = 'bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full transition-all duration-1000 metric-bar shadow-lg shadow-blue-500/30';
-                    }
-                }
-            }
-            
-            // Update Database Connections
-            const dbElement = document.querySelector('[data-metric="db"]');
-            if (dbElement) {
-                const valueElement = dbElement.querySelector('.metric-value');
-                const barElement = dbElement.querySelector('.metric-bar');
-                if (valueElement && barElement) {
-                    const dbPercent = (metrics.db_connections / metrics.db_max_connections) * 100;
-                    valueElement.textContent = `${metrics.db_connections} / ${metrics.db_max_connections}`;
-                    barElement.style.width = `${dbPercent}%`;
-                }
-            }
-            
-            // Update Disk
-            const diskElement = document.querySelector('[data-metric="disk"]');
-            if (diskElement) {
-                const valueElement = diskElement.querySelector('.metric-value');
-                const barElement = diskElement.querySelector('.metric-bar');
-                if (valueElement && barElement) {
-                    valueElement.textContent = `${metrics.disk_percent}%`;
-                    barElement.style.width = `${metrics.disk_percent}%`;
-                    
-                    if (metrics.disk_percent > 80) {
-                        barElement.className = 'bg-gradient-to-r from-red-500 to-rose-600 h-2.5 rounded-full transition-all duration-1000 metric-bar shadow-lg shadow-red-500/30';
-                    } else if (metrics.disk_percent > 60) {
-                        barElement.className = 'bg-gradient-to-r from-yellow-500 to-amber-600 h-2.5 rounded-full transition-all duration-1000 metric-bar shadow-lg shadow-yellow-500/30';
-                    } else {
-                        barElement.className = 'bg-gradient-to-r from-cyan-500 to-blue-600 h-2.5 rounded-full transition-all duration-1000 metric-bar shadow-lg shadow-cyan-500/30';
-                    }
-                }
-            }
-        })
-        .catch(err => {
-            console.error('Error loading performance metrics:', err);
-            showNotification('Failed to load system metrics', 'error');
-        });
-}
-
-// Show activity details
-function showActivityDetails(username, reply, calledstationid, callingstationid) {
-    const details = `
-        Username: ${username}
-        Status: ${reply}
-        Called Station: ${calledstationid || 'N/A'}
-        Calling Station: ${callingstationid || 'N/A'}
-    `;
-    console.log('Activity Details:', details);
-}
-
-// Refresh functions dengan error handling
-function refreshActivityChart() {
-    if (isRefreshing) return;
-    isRefreshing = true;
-    
-    const chartContainer = safeGetElement('authActivityChart')?.parentElement;
-    if (!chartContainer) {
-        isRefreshing = false;
-        return;
+                <div class="flex-1">
+                    <p class="font-semibold text-gray-800">${activity.text}</p>
+                    <p class="text-sm text-gray-500">${activity.time}</p>
+                </div>
+                ${activity.color === 'green' || activity.color === 'blue' ? '<div class="w-3 h-3 bg-' + activity.color + '-500 rounded-full pulse-dot"></div>' : ''}
+            </div>
+        `}).join('');
+    } catch (error) {
+        console.error('Error loading recent activity:', error);
     }
-    
-    chartContainer.innerHTML = `
-        <canvas id="authActivityChart"></canvas>
-        <div id="authActivityLoading" class="absolute inset-0 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm rounded-xl">
-            <i class="fas fa-spinner fa-spin text-indigo-400 text-3xl"></i>
-        </div>
-    `;
-    
+}
+
+async function loadPerformanceMetrics() {
+    try {
+        const metrics = await apiCall('/api/system-metrics');
+        updateMetric('cpu', metrics.cpu_percent, `${metrics.cpu_percent}%`);
+        updateMetric('memory', metrics.memory_percent, `${metrics.memory_percent}%`);
+        const dbPercent = (metrics.db_connections / metrics.db_max_connections) * 100;
+        updateMetric('db', dbPercent, `${metrics.db_connections} / ${metrics.db_max_connections}`);
+        updateMetric('disk', metrics.disk_percent, `${metrics.disk_percent}%`);
+    } catch (error) {
+        console.error('Error loading performance metrics:', error);
+    }
+}
+
+function updateMetric(metricName, percent, valueText) {
+    const element = document.querySelector(`[data-metric="${metricName}"]`);
+    if (!element) return;
+    const valueEl = element.querySelector('.metric-value');
+    const barEl = element.querySelector('.metric-bar');
+    if (valueEl) valueEl.textContent = valueText;
+    if (barEl) barEl.style.width = `${percent}%`;
+}
+
+function refreshActivityChart() {
     createAuthActivityChart();
-    showNotification('Authentication activity chart refreshed', 'success');
-    
-    setTimeout(() => { isRefreshing = false; }, 1000);
+    showNotification('Chart refreshed', 'success');
 }
 
 function refreshSessionsChart() {
-    if (isRefreshing) return;
-    isRefreshing = true;
-    
-    const chartContainer = safeGetElement('sessionsPieChart')?.parentElement;
-    if (!chartContainer) {
-        isRefreshing = false;
-        return;
-    }
-    
-    chartContainer.innerHTML = `
-        <canvas id="sessionsPieChart"></canvas>
-        <div id="sessionsPieLoading" class="absolute inset-0 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm rounded-xl">
-            <i class="fas fa-spinner fa-spin text-indigo-400 text-3xl"></i>
-        </div>
-    `;
-    
     createSessionsPieChart();
-    showNotification('Sessions distribution chart refreshed', 'success');
-    
-    setTimeout(() => { isRefreshing = false; }, 1000);
+    showNotification('Chart refreshed', 'success');
 }
 
-// Update time
-function updateTime() {
-    const lastUpdateElement = safeGetElement('lastUpdate');
-    if (lastUpdateElement) {
-        lastUpdateElement.textContent = new Date().toLocaleTimeString('id-ID');
-    }
-}
-
-// Main refresh function
 function refreshAllData() {
     loadStats();
     loadPerformanceMetrics();
     loadRecentActivity();
-    updateTime();
-    
-    // Only refresh charts if they exist
-    const authChartExists = safeGetElement('authActivityChart');
-    const sessionsChartExists = safeGetElement('sessionsPieChart');
-    
-    if (authChartExists) {
-        createAuthActivityChart();
-    }
-    
-    if (sessionsChartExists) {
-        createSessionsPieChart();
-    }
+    createAuthActivityChart();
+    createSessionsPieChart();
 }
 
-// Cleanup function
-function cleanup() {
-    if (authActivityChart) {
-        authActivityChart.destroy();
-        authActivityChart = null;
-    }
-    if (sessionsPieChart) {
-        sessionsPieChart.destroy();
-        sessionsPieChart = null;
-    }
-    if (refreshInterval) {
-        clearInterval(refreshInterval);
-        refreshInterval = null;
-    }
-}
-
-// Initialize
 document.addEventListener('DOMContentLoaded', function() {
     loadStats();
     createAuthActivityChart();
     createSessionsPieChart();
     loadRecentActivity();
     loadPerformanceMetrics();
-    updateTime();
-    
-    // Auto refresh every 30 seconds
-    refreshInterval = setInterval(refreshAllData, 30000);
-    
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'r' && !e.ctrlKey && !e.metaKey && 
-            (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA')) {
-            e.preventDefault();
-            refreshAllData();
-            showNotification('Dashboard refreshed', 'info');
-        }
-    });
+    setInterval(refreshAllData, 30000);
 });
 
-// Error handling
-window.addEventListener('error', function(e) {
-    console.error('JavaScript error:', e.error);
-    showNotification('An unexpected error occurred', 'error');
+window.addEventListener('beforeunload', () => {
+    if (authActivityChart) authActivityChart.dispose();
+    if (sessionsPieChart) sessionsPieChart.dispose();
 });
-
-// Visibility change handler
-document.addEventListener('visibilitychange', function() {
-    if (document.hidden) {
-        console.log('Tab hidden, pausing updates');
-        if (refreshInterval) {
-            clearInterval(refreshInterval);
-            refreshInterval = null;
-        }
-    } else {
-        console.log('Tab visible, resuming updates');
-        refreshAllData();
-        refreshInterval = setInterval(refreshAllData, 30000);
-    }
-});
-
-// Cleanup on page unload
-window.addEventListener('beforeunload', cleanup);
 </script>
 {% endblock %}
